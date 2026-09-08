@@ -1,134 +1,151 @@
-# DiffGRM
+# Structured Generative Recommendation Research Fork
 
-This repository provides the code for implementing DiffGRM described in our paper.
+This repository started from DiffGRM, but the active research line is now a
+**collision-free one-pass structured semantic retriever with an independent
+causal AR verifier**. The `DiffGRM` repository and `DIFF_GRM` package names are
+retained for continuity; the current main method is not iterative diffusion.
 
-> **Active research fork.** The current local line is a collision-free,
-> one-pass structured semantic retriever with an independent AR verifier; the
-> `DIFF_GRM` package name is now historical. Start with
-> [docs/CURRENT_STATUS_2026-09-07.md](docs/CURRENT_STATUS_2026-09-07.md) and
-> [RESEARCH_HANDOFF_2026-09-01.md](RESEARCH_HANDOFF_2026-09-01.md). Lightweight
-> cross-machine result records live in
-> [experiment_records/](experiment_records/); see
-> [docs/EXPERIMENT_SYNC.md](docs/EXPERIMENT_SYNC.md) before pushing this fork.
+The primary experimental family is **Amazon Reviews 2023**, using the following
+three domains:
 
-### Environment Setup
+| Short name | Amazon23 domain | Train | Validation | Test | Items |
+|---|---|---:|---:|---:|---:|
+| Video23 | Video Games | 530,300 | 94,762 | 94,762 | 25,612 |
+| Music23 | Musical Instruments | 339,519 | 57,439 | 57,439 | 24,587 |
+| Science23 | Industrial and Scientific | 259,992 | 50,985 | 50,985 | 25,848 |
 
-1. **Clone the repository:**
+Office23 is prepared as a possible larger-scale extension, but it is not one
+of the three current primary domains. Amazon14 experiments are retained only
+as legacy reproduction and literature-comparison controls.
+
+## Start here
+
+- [Current research status](docs/CURRENT_STATUS_2026-09-07.md): the current
+  method, latest conclusions, and protocol distinctions.
+- [Research handoff](RESEARCH_HANDOFF_2026-09-01.md): architecture, code map,
+  canonical results, and diagnostic findings.
+- [Experiment result index](experiment_records/INDEX.md): lightweight,
+  Git-synchronized numerical records.
+- [Two-machine synchronization](docs/EXPERIMENT_SYNC.md): what belongs in Git
+  and how to publish a new experiment without committing checkpoints.
+- [Amazon23 data/configuration guide](experiments/amazon23_domains/README.md):
+  prepared split statistics, audits, and baseline launch commands.
+
+## Current system
+
+The main pipeline has three components:
+
+1. Item text is embedded with Sentence-T5 and quantized into semantic IDs.
+   Formal catalogs are repaired to be injective, so evaluation always resolves
+   a prediction to one concrete item.
+2. A one-forward history encoder and parallel coordinate heads score the legal
+   item catalog using unary plus learned pairwise tuple compatibility, then
+   retrieve Top-K candidates (normally K=72).
+3. A separately trained causal AR model teacher-forces each proposed complete
+   SID, scores the paths in parallel, and fuses its standardized scores with
+   the drafter scores using a validation-selected alpha.
+
+New Amazon23 experiments use the latest 20 history items (`L20`) unless an
+exception is explicitly labeled. Do not mix the historical Video23 L50 rows
+with the current L20 comparison. See the
+[history-length protocol](experiments/AMAZON_MAXLEN_PROTOCOL.md).
+
+## Current Amazon23 result snapshot
+
+All rows below are full test, collision-free concrete-item results. They are
+orientation numbers rather than a final multi-seed paper table.
+
+| Dataset/protocol | Method | NDCG@10 | Recall@10 |
+|---|---|---:|---:|
+| Video23 L20 | pooled one-pass pairwise + AR, fused-checkpoint control | 0.048461 | 0.091281 |
+| Video23 L20 | local Latte, beam 500 | 0.051082 | 0.095407 |
+| Music23 L20 | random one-pass pairwise + AR | **0.032250** | **0.059855** |
+| Science23 L20 | OPQ4 drafter + RQ-KMeans3 AR dual view | **0.024879** | **0.047230** |
+| Video23 L50, historical | DiffGRM-init one-pass pairwise + AR | 0.048585 | 0.091123 |
+
+The result index records additional baselines, negative results, tokenizer
+controls, and protocol notes. In particular, the September 7 multiple-interest
+extension did not demonstrate a stable improvement.
+
+## Environment
+
 ```bash
-git clone <repository-url>
-cd DiffGM
-```
-
-2. **Create a conda environment (recommended):**
-```bash
-conda create -n diffgm python=3.10 -y
-conda activate diffgm
-```
-
-3. **Install dependencies:**
-```bash
+git clone git@github.com:lingfengs111/diffGRM.git
+cd diffGRM
+conda create -n diffgrm python=3.10 -y
+conda activate diffgrm
 pip install -r requirements.txt
 ```
 
+The current long-running environment on the original machine is
+`/home/lingfengs111/miniconda3/envs/diffgrm/bin/python`. A second machine may
+use a different path; update `python_bin` in older launch scripts accordingly.
 
-## Reproduction
+## Amazon23 data
 
-> **Amazon history-length standard:** new Amazon14/23 experiments default to
-> `max_history_len=20` to match Latte/PSID. Intentional non-20 runs must be
-> labeled with their length. See
-> [experiments/AMAZON_MAXLEN_PROTOCOL.md](experiments/AMAZON_MAXLEN_PROTOCOL.md).
+Datasets are deliberately not stored in Git. Each prepared domain directory
+contains `item_vocab.csv`, `item_texts.csv`, and the CleanGR train/validation/
+test JSONL splits. Update `data_dir` after copying data to the new machine:
 
+- `experiments/amazon23_domains/video23.yaml`
+- `experiments/amazon23_domains/music23.yaml`
+- `experiments/amazon23_domains/science23.yaml`
 
-### Sports and Outdoors
+The committed files currently contain paths from the original workstation, so
+this path adjustment is required when the directory layout differs.
 
-```
-CUDA_VISIBLE_DEVICES=2 python main.py \
-  --category=Sports_and_Outdoors \
-  --train_batch_size=1024 \
-  --model=DIFF_GRM \
-  --n_digit=4 \
-  --masking_strategy=guided \
-  --guided_refresh_each_step=false \
-  --guided_select=least \
-  --guided_conf_metric=msp \
-  --encoder_n_layer=1 \
-  --decoder_n_layer=4 \
-  --n_head=4 \
-  --n_embd=256 \
-  --n_inner=1024 \
-  --train_sliding=true \
-  --min_hist_len=2 \
-  --eval_start_epoch=20 \
-  --lr=0.003 \
-  --label_smoothing=0.1 \
-  --sent_emb_model="sentence-transformers/sentence-t5-base" \
-  --sent_emb_dim=768 \
-  --sent_emb_pca=256 \
-  --sent_emb_batch_size=256 \
-  --normalize_after_pca=true \
-  --force_regenerate_opq=true \
-  --share_decoder_output_embedding=true > runs/sports/t5_pca256_guided_least_0_msp_1e4d_256dim_xxx_xxx_xxx.txt 2>&1 &
+Audit a copied dataset before training:
+
+```bash
+python scripts/validate_prepared_protocol.py \
+  --dataset AmazonReviews2023CleanGR \
+  --config experiments/amazon23_domains/common.yaml \
+  --config experiments/amazon23_domains/video23.yaml \
+  --data-only
 ```
 
+Replace `video23.yaml` with `music23.yaml` or `science23.yaml` as needed.
 
-### Beauty
+## Main code and experiment entry points
 
-```
-CUDA_VISIBLE_DEVICES=5 python main.py \
-  --category=Beauty \
-  --train_batch_size=1024 \
-  --model=DIFF_GRM \
-  --n_digit=4 \
-  --masking_strategy=guided \
-  --guided_refresh_each_step=false \
-  --guided_select=least \
-  --guided_conf_metric=msp \
-  --encoder_n_layer=1 \
-  --decoder_n_layer=4 \
-  --n_head=4 \
-  --n_embd=256 \
-  --n_inner=1024 \
-  --train_sliding=true \
-  --min_hist_len=2 \
-  --eval_start_epoch=20 \
-  --lr=0.01 \
-  --label_smoothing=0.2 \
-  --sent_emb_model=sentence-transformers/sentence-t5-base \
-  --sent_emb_dim=768 \
-  --sent_emb_pca=256 \
-  --sent_emb_batch_size=256 \
-  --normalize_after_pca=true \
-  --force_regenerate_opq=true \
-  --share_decoder_output_embedding=true > runs/beauty/ls02_t5_pca256_guided_least_0_msp_1e4d_256dim_xxx_xxx_xxx.txt 2>&1 &
+- `scripts/train_parallel_opq_drafter.py`: current one-pass structured drafter
+  training, candidate retrieval, AR reranking, and fusion evaluation.
+- `genrec/models/DIFF_GRM/parallel_drafter.py`: unary/pairwise catalog scorer.
+- `genrec/models/DIFF_GRM/encoder_head_drafter.py`: random encoder plus parallel
+  coordinate heads.
+- `genrec/models/AR_GRM/model.py`: standalone generation and exact
+  teacher-forced candidate-path scoring.
+- `experiments/music23_transfer/`: Music23 AR, DiffGRM, SASRec, and current
+  one-pass transfer launchers.
+- `experiments/science23_transfer/`: Science23 L20 transfer launchers.
+- `experiments/tokenizer_controls_20260907/`: Science23 tokenizer, collision
+  repair, and dual-view controls.
+- `experiments/history_interest_20260907/`: completed Science23/Video23 L20
+  history-reader and multiple-interest suite.
+
+Several historical launchers contain absolute repository, Python, checkpoint,
+or dataset paths. Review these variables before running them on another
+machine. Training artifacts go under ignored `runs/` and `saved/` directories.
+
+## Recording a new result
+
+Routine experiments do not need a new prose summary. Record their metrics and
+provenance, rebuild the common index, then commit only the new/changed files:
+
+```bash
+python scripts/record_experiment.py --help
+python scripts/build_results_index.py
+git status --short
 ```
 
-### Toys and Games
+A `summary.md` is useful only when a suite closes, a validity issue is found,
+or the research conclusion changes. Checkpoints and large rank arrays remain
+local and are referenced rather than copied.
 
-```
-CUDA_VISIBLE_DEVICES=0 python main.py \
-  --category=Toys_and_Games \
-  --train_batch_size=1024 \
-  --model=DIFF_GRM \
-  --n_digit=4 \
-  --masking_strategy=guided \
-  --guided_refresh_each_step=false \
-  --guided_select=least \
-  --guided_conf_metric=msp \
-  --encoder_n_layer=1 \
-  --decoder_n_layer=4 \
-  --n_head=8 \
-  --n_embd=1024 \
-  --n_inner=1024 \
-  --train_sliding=true \
-  --min_hist_len=2 \
-  --eval_start_epoch=10 \
-  --lr=0.003 \
-  --label_smoothing=0.15 \
-  --sent_emb_model="sentence-transformers/sentence-t5-base" \
-  --sent_emb_dim=768 \
-  --sent_emb_pca=256 \
-  --sent_emb_batch_size=256 \
-  --normalize_after_pca=true \
-  --force_regenerate_opq=true \
-  --share_decoder_output_embedding=true > runs/toys/h8_ls015_t5_pca256_guided_least_0_msp_1e4d_1024dim_xxx_xxx_xxx.txt 2>&1 &
-```
+## Legacy Amazon14 scope
+
+The original DiffGRM Sports/Beauty/Toys work and later Beauty14/RPG comparison
+audits remain available under `experiments/amazon14_domains/` and related
+experiment directories. They are useful for reproducing published tables and
+studying SID-collision inflation, but they are no longer the default project
+entry point or the primary dataset family for new method development.

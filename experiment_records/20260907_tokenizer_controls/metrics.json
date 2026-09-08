@@ -19,6 +19,13 @@
     {
       "dataset": "Science23",
       "split": "test",
+      "method": "OPQ4 drafter / OPQ4 AR, Hungarian",
+      "metrics": {"ndcg@5": 0.019125, "recall@5": 0.029675, "ndcg@10": 0.024520, "recall@10": 0.046445, "candidate_recall@72": 0.125135},
+      "notes": "matched tokenizer; alpha=0.75; completed after initial snapshot"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
       "method": "RQ2+OPQ2 drafter / matched AR, Hungarian",
       "metrics": {"ndcg@5": 0.019270, "recall@5": 0.029970, "ndcg@10": 0.024290, "recall@10": 0.045582, "candidate_recall@72": 0.124625},
       "notes": "alpha=0.75"

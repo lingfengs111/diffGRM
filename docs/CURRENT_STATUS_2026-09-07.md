@@ -62,9 +62,12 @@ repaired catalog. The first two dual-view `result.json` files are invalid due
 to a runtime head-temperature mismatch; only their `result_v2.json` reruns are
 valid.
 
-The matched OPQ4 + Hungarian control is still running at this snapshot and is
-excluded from completed comparisons. Its advancing progress/log timestamps,
-not the process visibility inside this environment, determine that status.
+The matched OPQ4 + Hungarian control subsequently completed at 0.019125
+NDCG@5, 0.029675 Recall@5, 0.024520 NDCG@10, 0.046445 Recall@10, and 0.125135
+candidate Recall@72. Relative to matched OPQ4/ESM it improves candidate
+coverage and the Top-10 metrics, but remains below the OPQ4-to-RQ-KMeans3
+dual-view result. Collision repair is therefore consequential, but it does not
+explain away the asymmetric dual-view gain.
 
 ## Recent objective ablations
 

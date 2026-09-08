@@ -3,7 +3,7 @@
   "record_id": "20260907_tokenizer_controls",
   "title": "Science23 tokenizer and collision-repair controls",
   "date": "2026-09-07",
-  "status": "running",
+  "status": "complete",
   "datasets": [
     "Science23"
   ],
@@ -30,9 +30,7 @@
       "reason": "incorrect runtime head temperature"
     }
   ],
-  "pending": [
-    "Matched OPQ4 + Hungarian training was active when this record snapshot was made; no result.json existed yet."
-  ],
+  "completion_update": "Matched OPQ4 + Hungarian completed after the initial snapshot and is included in metrics.json.",
   "git_snapshot": {
     "commit": "ad7b971c7e52",
     "branch": "main",
@@ -42,14 +40,14 @@
     {
       "role": "metrics",
       "stored_as": "metrics.json",
-      "bytes": 2779,
-      "sha256": "593f47ac5489da3ce38756936682d0bc10bdb4baa2198aecb5993ac755bb2219"
+      "bytes": 3117,
+      "sha256": "47ccd21ed078a41eead05636d724f896885bb2d963b8ce1abd07f133e30cded8"
     },
     {
       "role": "summary",
       "stored_as": "summary.md",
-      "bytes": 985,
-      "sha256": "7d8f55482145b8591709730f2a2e1d82b467de4e9aaf763fbfcf7fd1bf66d254"
+      "bytes": 1131,
+      "sha256": "acc6628752d09de864b2d5fc8f9dd25a7c8d854b610f41eee486b002e67c575e"
     }
   ]
 }
