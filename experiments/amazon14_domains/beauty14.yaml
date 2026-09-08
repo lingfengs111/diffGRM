@@ -1,0 +1,7 @@
+category: Beauty
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon14_beauty/raw_core5
+expected_protocol:
+  train: 131413
+  val: 22363
+  test: 22363
+  items: 12101

@@ -1,0 +1,14 @@
+# Fast matched-budget evaluation: use exactly the random-order K=32 decoder
+# that selected the checkpoint on validation.
+beam_search_modes: [random]
+vectorized_beam_search:
+  top_k_final: 10
+  neg_inf_fp32: -1000000000.0
+  neg_inf_fp16: -65504.0
+  dedup_strategy: simple
+  val: {beam_act: 32, beam_max: 32}
+  test: {beam_act: 32, beam_max: 32}
+  beam_act: 32
+  beam_max: 32
+decoder_diagnostics:
+  enabled: false

@@ -1,0 +1,9 @@
+# Approximately half-system-capacity control for the canonical Video23 setup.
+# Depth, attention heads, tokenizer, catalog, objectives, and evaluation are
+# unchanged; only hidden/FFN widths are scaled down.
+n_embd: 176
+n_inner: 352
+encoder_n_layer: 2
+decoder_n_layer: 2
+n_head: 4
+

@@ -132,7 +132,15 @@ def expand_cross_kv_for_beams(initial_kv_cache, beam_size):
 
 
 
-def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer=None, mode="confidence", rand_cfg=None):
+def iterative_mask_decode(
+    model,
+    encoder_hidden,
+    n_return_sequences=1,
+    tokenizer=None,
+    mode="confidence",
+    rand_cfg=None,
+    return_scores=False,
+):
     """
     向量化迭代式掩码填充解码，完全消除Python循环瓶颈
     
@@ -194,18 +202,27 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
     # ---------- ② 随机一次列顺序（仅random模式） ----------
     decode_order = None
     if mode == "random":
-        # 🚀 修复：保存当前随机种子状态，避免污染训练
-        original_state = torch.get_rng_state()
-        try:
-            seed = model.config.get("random_beam", {}).get("seed")
-            if seed is not None:
-                torch.manual_seed(seed)
-            decode_order = torch.randperm(n_digit).tolist()      # e.g. [1,5,3,7,0,2,6,4]
-            if batch_size == 1:  # 只在单样本时打印，避免多worker刷屏
-                print(f"[RANDOM_BEAM] 🎲 Decode order: {decode_order}")
-        finally:
-            # 🚀 恢复原始随机种子状态
-            torch.set_rng_state(original_state)
+        random_cfg = model.config.get("random_beam", {})
+        explicit_order = random_cfg.get("decode_order")
+        if explicit_order is not None:
+            decode_order = [int(digit) for digit in explicit_order]
+            if sorted(decode_order) != list(range(n_digit)):
+                raise ValueError(
+                    f"random_beam.decode_order must be a permutation of "
+                    f"0..{n_digit - 1}, got {decode_order}"
+                )
+        else:
+            # Save/restore RNG state so evaluation does not perturb training.
+            original_state = torch.get_rng_state()
+            try:
+                seed = random_cfg.get("seed")
+                if seed is not None:
+                    torch.manual_seed(seed)
+                decode_order = torch.randperm(n_digit).tolist()
+            finally:
+                torch.set_rng_state(original_state)
+        if batch_size == 1:
+            print(f"[RANDOM_BEAM] 🎲 Decode order: {decode_order}")
     
     # 常量
     MASK_ID = tokenizer.mask_token if tokenizer is not None else -1
@@ -448,19 +465,43 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
             # 找到每个beam需要填充的最后一个位置
             last_mask_pos = torch.argmax(mask_positions.float(), dim=-1)  # [B, BEAM_ACT]
             
-            # 为每个beam选择对应位置的最佳token
+            # 为每个beam选择对应位置的token
             batch_idx = torch.arange(batch_size, device=device).unsqueeze(1).expand(-1, BEAM_ACT)
             beam_idx = torch.arange(BEAM_ACT, device=device).unsqueeze(0).expand(batch_size, -1)
             
             final_logits = all_log_probs[batch_idx, beam_idx, last_mask_pos]  # [B, BEAM_ACT, codebook_size]
-            best_token_logprobs, best_tokens = torch.max(final_logits, dim=-1)  # [B, BEAM_ACT]
-            
-            # 更新最后的token
-            active_beam_ids.scatter_(2, last_mask_pos.unsqueeze(-1), best_tokens.unsqueeze(-1))
-            final_beam_logp = active_beam_logp + best_token_logprobs
+            if bool(model.config.get('final_step_beam_expand', False)):
+                # Proper beam-search termination: rank every parent-token pair
+                # globally.  The released implementation greedily kept only
+                # one final token per parent, which can discard a valid Top-K
+                # item before catalog filtering and sequence deduplication.
+                joint_logprobs = active_beam_logp.unsqueeze(-1) + final_logits
+                flat_logprobs = joint_logprobs.reshape(batch_size, -1)
+                final_beam_logp, flat_indices = torch.topk(
+                    flat_logprobs, k=BEAM_ACT, dim=-1
+                )
+                parent_indices = flat_indices // codebook_size
+                best_tokens = flat_indices % codebook_size
+                parent_ids = active_beam_ids[batch_idx, parent_indices].clone()
+                parent_last_mask_pos = last_mask_pos[batch_idx, parent_indices]
+                parent_ids.scatter_(
+                    2,
+                    parent_last_mask_pos.unsqueeze(-1),
+                    best_tokens.unsqueeze(-1),
+                )
+                active_beam_ids = parent_ids
+            else:
+                best_token_logprobs, best_tokens = torch.max(final_logits, dim=-1)  # [B, BEAM_ACT]
+
+                # 更新最后的token
+                active_beam_ids.scatter_(2, last_mask_pos.unsqueeze(-1), best_tokens.unsqueeze(-1))
+                final_beam_logp = active_beam_logp + best_token_logprobs
         
         # 🚀 灵活的去重策略
-        dedup_strategy = "simple"  # 默认使用 simple 去重
+        # The YAML stores this option inside vectorized_beam_search. Keep a
+        # top-level override for command-line ablations, but honor the nested
+        # setting instead of silently falling back to ``simple``.
+        dedup_strategy = beam_config.get('dedup_strategy', 'simple')
         if hasattr(model, 'config') and 'dedup_strategy' in model.config:
             dedup_strategy = model.config['dedup_strategy']
         
@@ -469,6 +510,7 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
             top_logprobs, top_indices = torch.topk(final_beam_logp, k=min(TOP_K_FINAL, BEAM_ACT), dim=-1)
             batch_range = torch.arange(batch_size, device=device).unsqueeze(1)
             final_sequences = active_beam_ids[batch_range, top_indices]  # [B, TOP_K_FINAL, n_digit]
+            final_sequence_scores = top_logprobs
             
             if batch_size == 1:
                 print(f"[VECTORIZED_BEAM] ✅ Generated {final_sequences.shape[1]} sequences (no deduplication)")
@@ -479,6 +521,7 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
             assert tokenizer is not None, "tokenizer is required for legality check"
             
             final_sequences = []
+            final_sequence_scores = []
             for b in range(batch_size):
                 batch_sequences = active_beam_ids[b]  # [BEAM_ACT, n_digit]
                 batch_logprobs = final_beam_logp[b]   # [BEAM_ACT]
@@ -486,6 +529,7 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
                 # 按概率排序，然后简单去重 + 合法性检查
                 sorted_indices = torch.argsort(batch_logprobs, descending=True)
                 unique_sequences = []
+                unique_scores = []
                 
                 for idx in sorted_indices:
                     seq = batch_sequences[idx]
@@ -497,6 +541,7 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
                     is_duplicate = any(torch.equal(seq, existing) for existing in unique_sequences)
                     if not is_duplicate:
                         unique_sequences.append(seq)
+                        unique_scores.append(batch_logprobs[idx])
                         if len(unique_sequences) >= TOP_K_FINAL:
                             break
                             
@@ -505,21 +550,26 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
                     if unique_sequences:
                         # 如果有合法序列，重复最后一个
                         unique_sequences.append(unique_sequences[-1])
+                        unique_scores.append(unique_scores[-1])
                     else:
                         # 如果没有合法序列，找一个合法的填充
                         for idx in range(BEAM_ACT):
                             seq = batch_sequences[idx]
                             if tokenizer.codebooks_to_item_id(seq.tolist()) is not None:
                                 unique_sequences.append(seq)
+                                unique_scores.append(batch_logprobs[idx])
                                 break
                         # 如果还是找不到合法序列，用第一个（虽然不合法，但总比崩溃好）
                         if not unique_sequences:
                             unique_sequences.append(batch_sequences[0])
+                            unique_scores.append(batch_logprobs[0])
                 
                 batch_final = torch.stack(unique_sequences[:TOP_K_FINAL])
                 final_sequences.append(batch_final)
+                final_sequence_scores.append(torch.stack(unique_scores[:TOP_K_FINAL]))
             
             final_sequences = torch.stack(final_sequences)
+            final_sequence_scores = torch.stack(final_sequence_scores)
             if batch_size == 1:
                 print(f"[VECTORIZED_BEAM] ✅ Generated {final_sequences.shape[1]} unique sequences (simple deduplication + legality check)")
                 
@@ -529,6 +579,7 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
             assert tokenizer is not None, "tokenizer is required for legality check"
             
             final_sequences = []
+            final_sequence_scores = []
             for b in range(batch_size):
                 batch_sequences = active_beam_ids[b]  # [BEAM_ACT, n_digit]
                 batch_logprobs = final_beam_logp[b]   # [BEAM_ACT]
@@ -557,30 +608,37 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
                 
                 # 选择前TOP_K_FINAL个不重复序列（已经按加权概率排序）
                 unique_sequences = []
-                for seq_tuple, _ in sorted_items[:TOP_K_FINAL]:
+                unique_scores = []
+                for seq_tuple, seq_score in sorted_items[:TOP_K_FINAL]:
                     seq_tensor = torch.tensor(seq_tuple, device=device, dtype=torch.long)
                     unique_sequences.append(seq_tensor)
+                    unique_scores.append(seq_score)
                 
                 # 填充不足的部分（确保填充的序列也是合法的）
                 while len(unique_sequences) < TOP_K_FINAL:
                     if unique_sequences:
                         # 如果有合法序列，重复最后一个
                         unique_sequences.append(unique_sequences[-1])
+                        unique_scores.append(unique_scores[-1])
                     else:
                         # 如果没有合法序列，找一个合法的填充
                         for idx in range(BEAM_ACT):
                             seq = batch_sequences[idx]
                             if tokenizer.codebooks_to_item_id(seq.tolist()) is not None:
                                 unique_sequences.append(seq)
+                                unique_scores.append(batch_logprobs[idx])
                                 break
                         # 如果还是找不到合法序列，用第一个（虽然不合法，但总比崩溃好）
                         if not unique_sequences:
                             unique_sequences.append(batch_sequences[0])
+                            unique_scores.append(batch_logprobs[0])
                 
                 batch_final = torch.stack(unique_sequences[:TOP_K_FINAL])
                 final_sequences.append(batch_final)
+                final_sequence_scores.append(torch.stack(unique_scores[:TOP_K_FINAL]))
             
             final_sequences = torch.stack(final_sequences)
+            final_sequence_scores = torch.stack(final_sequence_scores)
             if batch_size == 1:
                 print(f"[VECTORIZED_BEAM] ✅ Generated {final_sequences.shape[1]} unique sequences (probability-weighted deduplication + legality check)")
     
@@ -597,13 +655,26 @@ def iterative_mask_decode(model, encoder_hidden, n_return_sequences=1, tokenizer
         duplicate_ratio = 1 - unique_seqs / total_seqs
 
         # 返回统计信息供evaluator使用，而不是直接打印
+        if return_scores:
+            return final_sequences, final_sequence_scores, final_legal_ratio, duplicate_ratio
         return final_sequences, final_legal_ratio, duplicate_ratio
     # --------------------------------
     
+    if return_scores:
+        return final_sequences, final_sequence_scores
     return final_sequences
 
 
-def fast_beam_search_for_eval(model, encoder_hidden, beam_size=10, max_len=4, tokenizer=None, mode="confidence", rand_cfg=None):
+def fast_beam_search_for_eval(
+    model,
+    encoder_hidden,
+    beam_size=10,
+    max_len=4,
+    tokenizer=None,
+    mode="confidence",
+    rand_cfg=None,
+    return_scores=False,
+):
     """
     专门用于验证的快速向量化beam search
     采用与TensorFlow一致的策略：前3步固定512beam，最后取top-K
@@ -627,14 +698,14 @@ def fast_beam_search_for_eval(model, encoder_hidden, beam_size=10, max_len=4, to
         n_return_sequences=beam_size,
         tokenizer=tokenizer,
         mode=mode,
-        rand_cfg=rand_cfg or {}
+        rand_cfg=rand_cfg or {},
+        return_scores=return_scores,
     )
     
     # 处理返回值：可能是元组（序列+统计信息）或只是序列
     if isinstance(result, tuple):
+        if return_scores:
+            return result[0], result[1]
         return result[0]  # 只返回序列部分
     else:
         return result
-
-
- 

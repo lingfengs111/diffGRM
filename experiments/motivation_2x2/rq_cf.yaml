@@ -1,0 +1,7 @@
+sid_quantizer: rq_kmeans
+sid_collision_strategy: hungarian
+# Preserve the first three hierarchical stages and use the finest stage for
+# minimum-cost injectivity repair.
+collision_repair_digit: 3
+rq_kmeans_niters: 20
+rq_kmeans_seed: 2026

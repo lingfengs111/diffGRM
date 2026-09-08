@@ -1,0 +1,9 @@
+# Capacity-only control for the collision-free full Video23 pipeline.
+# Load this after the canonical common/model-specific configuration so that
+# the tokenizer, data, optimization, decoding, and evaluation stay unchanged.
+encoder_n_layer: 3
+decoder_n_layer: 3
+n_head: 4
+n_embd: 256
+n_inner: 1024
+

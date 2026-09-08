@@ -1,0 +1,32 @@
+# Low-cost probe of GRID's independent classifier per SID position.
+# Heads are initialized from the corresponding tied embedding slices, so the
+# first forward pass exactly matches the canonical strong AR checkpoint.
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2014CleanGR_beauty14_full_opq_ar_finetune_control_v1/pytorch_model.bin
+run_id: beauty14_full_opq_grid_level_heads_only_v1
+decoder_output_mode: level_linear
+train_level_output_heads_only: true
+constrained_beam: true
+
+lr: 0.0003
+weight_decay: 0.0
+warmup_steps: 100
+epochs: 10
+eval_start_epoch: 1
+eval_interval: 1
+patience: 3
+train_batch_size: 512
+eval_batch_size: 32
+
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [32, 32, 32, 32]
+    beam_search_num: [32, 32, 32, 32]
+  test:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]
+decoder_diagnostics:
+  enabled: false

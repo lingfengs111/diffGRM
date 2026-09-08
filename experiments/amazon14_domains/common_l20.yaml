@@ -1,0 +1,83 @@
+# Shared collision-free Amazon Reviews 2014 prepared-split protocol.
+# Domain paths and expected row counts are merged from sports14.yaml, etc.
+metadata: sentence
+item_vocab_file: item_vocab.csv
+item_texts_file: item_texts.csv
+splits_dir: splits
+sent_emb_model: sentence-transformers/sentence-t5-base
+sent_emb_dim: 768
+sent_emb_pca: 256
+normalize_after_pca: true
+sent_emb_batch_size: 512
+
+n_digit: 4
+quantizer_n_digit: 4
+codebook_size: 256
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+collision_repair_digit: auto
+disable_opq: false
+force_regenerate_opq: false
+force_regenerate_codes: false
+opq_use_gpu: false
+faiss_omp_num_threads: 32
+
+max_history_len: 20
+max_hist_len: 20
+encoder_n_layer: 2
+decoder_n_layer: 2
+n_head: 4
+n_embd: 256
+n_inner: 512
+dropout: 0.1
+embd_pdrop: 0.1
+attn_pdrop: 0.1
+resid_pdrop: 0.1
+share_decoder_output_embedding: true
+
+masking_strategy: guided
+guided_steps: auto
+guided_conf_metric: msp
+guided_refresh_each_step: false
+guided_select: least
+beam_search_modes: [confidence, random]
+random_beam:
+  beam_act: 64
+  beam_max: 64
+  seed: 42
+  decode_order: null
+vectorized_beam_search:
+  top_k_final: 10
+  neg_inf_fp32: -1000000000.0
+  neg_inf_fp16: -65504.0
+  dedup_strategy: simple
+  val: {beam_act: 32, beam_max: 32}
+  test: {beam_act: 256, beam_max: 256}
+  beam_act: 32
+  beam_max: 32
+final_step_beam_expand: false
+path_listwise:
+  enabled: false
+
+train_batch_size: 1024
+eval_batch_size: 32
+lr: 0.003
+weight_decay: 0.0
+warmup_steps: 10000
+epochs: 180
+max_grad_norm: 1.0
+label_smoothing: 0.1
+eval_start_epoch: 10
+eval_interval: 2
+patience: 15
+topk: [5, 10]
+metrics: [ndcg, recall]
+val_metric: weighted_score
+eval_collision_corrected: true
+
+decoder_diagnostics:
+  enabled: true
+  splits: [test]
+  conditional: true
+  catalog: true
+

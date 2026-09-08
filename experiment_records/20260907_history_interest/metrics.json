@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "study_id": "20260907_history_interest",
+  "rows": [
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "pooled, candidate-recall checkpoint",
+      "metrics": {"ndcg@5": 0.019138, "recall@5": 0.029381, "ndcg@10": 0.024303, "recall@10": 0.045386},
+      "notes": "L20; retained old main method"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "pooled, fused-NDCG checkpoint",
+      "metrics": {"ndcg@5": 0.018783, "recall@5": 0.029009, "ndcg@10": 0.023881, "recall@10": 0.044896, "candidate_recall@72": 0.122742},
+      "notes": "L20; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "MLP capacity control",
+      "metrics": {"ndcg@5": 0.018895, "recall@5": 0.029028, "ndcg@10": 0.023969, "recall@10": 0.044876, "candidate_recall@72": 0.116054},
+      "notes": "L20; fused-NDCG checkpoint; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "two-interest attention",
+      "metrics": {"ndcg@5": 0.018582, "recall@5": 0.028263, "ndcg@10": 0.024015, "recall@10": 0.045170, "candidate_recall@72": 0.122095},
+      "notes": "L20; fused-NDCG checkpoint; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "local Latte beam-500",
+      "metrics": {"ndcg@5": 0.018723, "recall@5": 0.028773, "ndcg@10": 0.024109, "recall@10": 0.045523},
+      "notes": "L20; RQ-KMeans3 plus latent token; different architecture/budget"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "pooled, candidate-recall checkpoint",
+      "metrics": {"ndcg@5": 0.037372, "recall@5": 0.057038, "ndcg@10": 0.047899, "recall@10": 0.089793},
+      "notes": "L20; not the historical L50 canonical row"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "pooled, fused-NDCG checkpoint",
+      "metrics": {"ndcg@5": 0.037772, "recall@5": 0.057987, "ndcg@10": 0.048461, "recall@10": 0.091281, "candidate_recall@72": 0.233501},
+      "notes": "L20; alpha=0.75; not the historical L50 canonical row"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "MLP capacity control",
+      "metrics": {"ndcg@5": 0.037286, "recall@5": 0.057249, "ndcg@10": 0.047999, "recall@10": 0.090543, "candidate_recall@72": 0.230335},
+      "notes": "L20; fused-NDCG checkpoint; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "two-interest attention",
+      "metrics": {"ndcg@5": 0.037623, "recall@5": 0.057629, "ndcg@10": 0.048483, "recall@10": 0.091408, "candidate_recall@72": 0.235453},
+      "notes": "L20; fused-NDCG checkpoint; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "local Latte beam-500",
+      "metrics": {"ndcg@5": 0.040058, "recall@5": 0.061132, "ndcg@10": 0.051082, "recall@10": 0.095407},
+      "notes": "L20; RQ-KMeans3 plus latent token; different architecture/budget"
+    }
+  ]
+}

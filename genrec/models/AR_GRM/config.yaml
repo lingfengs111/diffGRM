@@ -2,6 +2,7 @@ model: AR_GRM
 
 # SID Configuration
 n_digit: 4
+quantizer_n_digit: 4
 codebook_size: 256
 share_embeddings: true
 
@@ -14,16 +15,20 @@ n_inner: 1024
 dropout: 0.1
 attn_pdrop: 0.1
 resid_pdrop: 0.1
-max_history_len: 50
+max_history_len: 20  # Amazon 默认协议；非 20 实验必须显式覆盖
 
 # Output Layer Configuration
 share_decoder_output_embedding: true
+decoder_output_mode: tied_embedding  # tied_embedding | level_linear
+train_level_output_heads_only: false
 
 # Autoregressive training
 train_mode: autoregressive
 use_causal_mask: true
 teacher_forcing: true
 train_use_kv_cache: false
+constrained_beam: true
+filter_illegal_final: true
 
 # AR Beam Search (sequential digits)
 ar_beam_search:
@@ -38,7 +43,7 @@ ar_beam_search:
 split: leave_one_out
 train_sliding: true
 min_hist_len: 2
-max_hist_len: 50
+max_hist_len: 20
 
 # Sentence Embedding (for SID generation)
 metadata: sentence
@@ -50,6 +55,8 @@ sent_emb_batch_size: 256
 
 # 量化方式（与 DIFF_GRM 对齐）
 sid_quantizer: opq_pq     # 可选: opq_pq | rq_kmeans | none
+sid_collision_strategy: none  # none | append_dedup | hungarian
+collision_repair_digit: auto
 rq_kmeans_niters: 20
 rq_kmeans_seed: 2026
 sid_random_seed: 2026
@@ -88,3 +95,11 @@ patience: 5
 topk: [5, 10]
 metrics: [ndcg, recall]
 val_metric: ndcg@10
+
+# Why-analysis is intentionally test-only: it performs an additional
+# teacher-forced decoder pass but does not affect checkpoint selection.
+decoder_diagnostics:
+  enabled: true
+  splits: [test]
+  conditional: true
+  catalog: true

@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "study_id": "20260901_canonical_baselines",
+  "rows": [
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "SASRec full softmax",
+      "metrics": {"ndcg@10": 0.047593, "recall@10": 0.087208},
+      "notes": "historical L50"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "collision-free guided DiffGRM direct",
+      "metrics": {"ndcg@10": 0.043537, "recall@10": 0.081657},
+      "notes": "historical L50; exact-item"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "standalone constrained AR",
+      "metrics": {"ndcg@10": 0.044655, "recall@10": 0.084148},
+      "notes": "historical L50"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "Exact-MIPS ID drafter + AR fusion",
+      "metrics": {"ndcg@10": 0.046711, "recall@10": 0.088284},
+      "notes": "historical L50"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "random one-pass pairwise + AR fusion",
+      "metrics": {"ndcg@10": 0.048009, "recall@10": 0.090289},
+      "notes": "historical L50; K=72"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "DiffGRM-init one-pass pairwise + AR fusion",
+      "metrics": {"ndcg@10": 0.048585, "recall@10": 0.091123},
+      "notes": "historical L50; K=72; canonical row"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "shared-encoder AR control",
+      "metrics": {"ndcg@10": 0.045841, "recall@10": 0.085942},
+      "notes": "historical L50"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "SASRec full softmax",
+      "metrics": {"ndcg@10": 0.030341, "recall@10": 0.055990},
+      "notes": "L20"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "collision-free guided DiffGRM direct",
+      "metrics": {"ndcg@10": 0.027057, "recall@10": 0.051376},
+      "notes": "L20; exact-item"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "standalone constrained AR",
+      "metrics": {"ndcg@10": 0.028986, "recall@10": 0.054562},
+      "notes": "L20"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "random one-pass drafter only",
+      "metrics": {"ndcg@10": 0.029519, "recall@10": 0.055694},
+      "notes": "L20; K=72"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "AR-only reranking of same proposals",
+      "metrics": {"ndcg@10": 0.029827, "recall@10": 0.056234},
+      "notes": "L20; K=72"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "random one-pass pairwise + AR fusion",
+      "metrics": {"ndcg@10": 0.032250, "recall@10": 0.059855},
+      "notes": "L20; K=72; canonical row"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "DiffGRM-init one-pass pairwise + AR fusion",
+      "metrics": {"ndcg@10": 0.031912, "recall@10": 0.059785},
+      "notes": "L20; K=72"
+    }
+  ]
+}

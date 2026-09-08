@@ -1,0 +1,14 @@
+use_causal_mask: true
+teacher_forcing: true
+constrained_beam: true
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [32, 32, 32, 32]
+    beam_search_num: [32, 32, 32, 32]
+  test:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]

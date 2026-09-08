@@ -2,6 +2,15 @@
 
 This repository provides the code for implementing DiffGRM described in our paper.
 
+> **Active research fork.** The current local line is a collision-free,
+> one-pass structured semantic retriever with an independent AR verifier; the
+> `DIFF_GRM` package name is now historical. Start with
+> [docs/CURRENT_STATUS_2026-09-07.md](docs/CURRENT_STATUS_2026-09-07.md) and
+> [RESEARCH_HANDOFF_2026-09-01.md](RESEARCH_HANDOFF_2026-09-01.md). Lightweight
+> cross-machine result records live in
+> [experiment_records/](experiment_records/); see
+> [docs/EXPERIMENT_SYNC.md](docs/EXPERIMENT_SYNC.md) before pushing this fork.
+
 ### Environment Setup
 
 1. **Clone the repository:**
@@ -23,6 +32,11 @@ pip install -r requirements.txt
 
 
 ## Reproduction
+
+> **Amazon history-length standard:** new Amazon14/23 experiments default to
+> `max_history_len=20` to match Latte/PSID. Intentional non-20 runs must be
+> labeled with their length. See
+> [experiments/AMAZON_MAXLEN_PROTOCOL.md](experiments/AMAZON_MAXLEN_PROTOCOL.md).
 
 
 ### Sports and Outdoors
@@ -118,5 +132,3 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --force_regenerate_opq=true \
   --share_decoder_output_embedding=true > runs/toys/h8_ls015_t5_pca256_guided_least_0_msp_1e4d_1024dim_xxx_xxx_xxx.txt 2>&1 &
 ```
-
-

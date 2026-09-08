@@ -17,6 +17,11 @@ from collections import defaultdict, OrderedDict
 from genrec.utils import get_total_steps, get_file_name, config_for_log
 from genrec.model import AbstractModel
 from genrec.tokenizer import AbstractTokenizer
+from genrec.diagnostics import (
+    catalog_diagnostics,
+    conditional_diagnostics,
+    generation_diagnostics,
+)
 
 
 class DIFF_GRMTrainer:
@@ -160,6 +165,11 @@ class DIFF_GRMTrainer:
             # Training
             self.model.train()
             total_loss = 0.0
+            total_token_loss = 0.0
+            total_path_loss = 0.0
+            path_loss_steps = 0
+            total_history_denoise_loss = 0.0
+            history_denoise_steps = 0
             train_progress_bar = tqdm(
                 train_dataloader,
                 total=len(train_dataloader),
@@ -179,9 +189,54 @@ class DIFF_GRMTrainer:
                 optimizer.step()
                 scheduler.step()
                 total_loss = total_loss + loss.item()
+                token_loss = getattr(outputs, 'token_loss', None)
+                path_loss = getattr(outputs, 'path_loss', None)
+                history_denoise_loss = getattr(
+                    outputs, 'history_denoise_loss', None
+                )
+                if token_loss is not None:
+                    total_token_loss += float(token_loss.detach().item())
+                if path_loss is not None:
+                    total_path_loss += float(path_loss.detach().item())
+                    path_loss_steps += 1
+                if history_denoise_loss is not None:
+                    total_history_denoise_loss += float(
+                        history_denoise_loss.detach().item()
+                    )
+                    history_denoise_steps += 1
 
             self.accelerator.log({"Loss/train_loss": total_loss / len(train_dataloader)}, step=epoch + 1)
             self.log(f'[Epoch {epoch + 1}] Train Loss: {total_loss / len(train_dataloader):.6f}')
+            if path_loss_steps:
+                mean_token_loss = total_token_loss / len(train_dataloader)
+                mean_path_loss = total_path_loss / path_loss_steps
+                self.accelerator.log(
+                    {
+                        "Loss/train_token_loss": mean_token_loss,
+                        "Loss/train_path_loss": mean_path_loss,
+                    },
+                    step=epoch + 1,
+                )
+                self.log(
+                    f'[Epoch {epoch + 1}] Token Loss: {mean_token_loss:.6f}; '
+                    f'Path Listwise Loss: {mean_path_loss:.6f}'
+                )
+            if history_denoise_steps:
+                mean_history_denoise_loss = (
+                    total_history_denoise_loss / history_denoise_steps
+                )
+                self.accelerator.log(
+                    {
+                        'Loss/train_history_denoise_loss': (
+                            mean_history_denoise_loss
+                        ),
+                    },
+                    step=epoch + 1,
+                )
+                self.log(
+                    f'[Epoch {epoch + 1}] History Denoise Loss: '
+                    f'{mean_history_denoise_loss:.6f}'
+                )
 
             # === Evaluation（保持原评估，但用局部 eval_start_epoch/eval_interval） ===
             if (epoch + 1) >= eval_start_epoch and (epoch + 1) % eval_interval == 0:
@@ -278,6 +333,9 @@ class DIFF_GRMTrainer:
         # 导入evaluator
         from .evaluator import DIFF_GRMEvaluator
         evaluator = DIFF_GRMEvaluator(self.config, self.tokenizer)
+        diag_cfg = self.config.get('decoder_diagnostics', {}) or {}
+        diag_splits = set(diag_cfg.get('splits', ['test']))
+        run_diag = bool(diag_cfg.get('enabled', False)) and split in diag_splits
         
         for batch in val_progress_bar:
             with torch.no_grad():
@@ -285,7 +343,7 @@ class DIFF_GRMTrainer:
                 self.config["current_split"] = split  # split == "val" / "test"
                 
                 # 对每个mode进行生成和评估
-                for mode in modes:
+                for mode_idx, mode in enumerate(modes):
                     # 生成序列
                     maxk = max(self.config['topk'])
                     preds = self.model.generate(batch, n_return_sequences=maxk, mode=mode)  # [B, maxk, n_digit]
@@ -294,16 +352,73 @@ class DIFF_GRMTrainer:
                     labels = batch['labels']  # [B, n_digit]
                     
                     # 计算指标
-                    batch_results = evaluator.calculate_metrics(preds, labels, suffix=("" if mode=="confidence" else f"_{mode}"))
+                    # The first requested mode is the primary validation mode,
+                    # regardless of its name, so val_metric remains stable for
+                    # single-mode catalog experiments.
+                    suffix = "" if mode_idx == 0 else f"_{mode}"
+                    batch_results = evaluator.calculate_metrics(preds, labels, suffix=suffix)
                     
                     # 累积结果
                     for key, values in batch_results.items():
                         all_results[key].extend(values.tolist())
 
+                    if run_diag and mode_idx == 0:
+                        generated = generation_diagnostics(
+                            preds, labels, prefix='diag/free_diffusion'
+                        )
+                        for key, values in generated.items():
+                            all_results[key].extend(values.detach().cpu().tolist())
+
+                if run_diag and bool(diag_cfg.get('conditional', True)):
+                    encoder_hidden = self.model(batch, return_loss=False).hidden_states
+                    labels_device = labels.to(encoder_hidden.device)
+                    all_masked = torch.ones_like(labels_device, dtype=torch.float)
+                    history_only = self.model.forward_decoder_only(
+                        {
+                            'decoder_input_ids': torch.zeros_like(labels_device),
+                            'encoder_hidden': encoder_hidden,
+                            'mask_positions': all_masked,
+                        },
+                        return_loss=False,
+                    ).logits
+                    history_metrics = conditional_diagnostics(
+                        history_only,
+                        labels,
+                        prefix='diag/history_only_diffusion',
+                    )
+                    for key, values in history_metrics.items():
+                        all_results[key].extend(values.detach().cpu().tolist())
+
+                    # Leave-one-out separates local code prediction from search:
+                    # every other target code is visible, only digit d is masked.
+                    loo_logits = []
+                    for digit in range(labels_device.shape[1]):
+                        mask = torch.zeros_like(labels_device, dtype=torch.float)
+                        mask[:, digit] = 1.0
+                        outputs = self.model.forward_decoder_only(
+                            {
+                                'decoder_input_ids': labels_device,
+                                'encoder_hidden': encoder_hidden,
+                                'mask_positions': mask,
+                            },
+                            return_loss=False,
+                            digit=digit,
+                        )
+                        loo_logits.append(outputs.logits)
+                    loo_metrics = conditional_diagnostics(
+                        torch.stack(loo_logits, dim=1),
+                        labels,
+                        prefix='diag/leave_one_out_diffusion',
+                    )
+                    for key, values in loo_metrics.items():
+                        all_results[key].extend(values.detach().cpu().tolist())
+
         # 计算平均指标
         final_results = OrderedDict()
         for key, values_list in all_results.items():
             final_results[key] = np.mean(values_list)
+        if run_diag and bool(diag_cfg.get('catalog', True)):
+            final_results.update(catalog_diagnostics(self.tokenizer, self.config['codebook_size']))
 
         # 🚀 打印最终统计结果
         evaluator.print_final_stats()
@@ -321,4 +436,4 @@ class DIFF_GRMTrainer:
             if self.accelerator.is_main_process:
                 print(message)
         else:
-            print(message) 
+            print(message)

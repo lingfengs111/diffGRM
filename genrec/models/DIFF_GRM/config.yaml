@@ -3,6 +3,9 @@ model: DIFF_GRM
 
 # SID Configuration
 n_digit: 4
+# Number of native quantizer digits. Usually equal to n_digit; set to 4 with
+# n_digit=5 for a TIGER-style appended collision-resolver experiment.
+quantizer_n_digit: 4
 codebook_size: 256
 share_embeddings: true
 
@@ -28,11 +31,17 @@ share_decoder_output_embedding: true   # 使用共享embedding dot-product，fal
 beam_search_modes: ["confidence", "random"]   # 顺序决定日志展示顺序
 # 如果只想偶尔跑 random，把它删掉即可
 
+# Order-agnostic catalog beam: alternate reveal orders reaching the same
+# partial SID are merged. factorial(n_digit) is used when null.
+catalog_beam:
+  premerge_factor: null
+
 # ─── 新增：random-beam 的采样超参（示例） ────────────────────
 random_beam:
   beam_act: 64        # 👈 你要的 "random_beam_size"
   beam_max: 64
   seed: 42            # 保留，用来固定随机列顺序
+  decode_order: null  # 可显式设为 [0,1,2,3]；非 null 时优先于 seed
 
 # Generation - 向量化Beam Search配置（统一管理）
 vectorized_beam_search:
@@ -51,6 +60,11 @@ vectorized_beam_search:
   # ↓可留可删，纯兼容旧代码
   beam_act: 32
   beam_max: 32
+
+# Preserve the released decoder by default. When enabled, the final masked
+# digit is selected with a proper global beam expansion over parent x token,
+# instead of greedily taking one token from each surviving parent.
+final_step_beam_expand: false
 
 # 兼容性参数（保留用于旧代码）
 beam_size: 10
@@ -83,13 +97,13 @@ mask_probs: null
 mask_prob: 0.5                     # 训练时的掩码概率（仅在未设置mask_probs时使用）
 augment_factor: 4                   # 数据增强倍数（仅在未设置mask_probs时使用）
 
-max_history_len: 50                 # 历史序列最大长度
+max_history_len: 20                 # Amazon 默认协议；非 20 实验必须显式覆盖
 
 # Data Split Configuration
 split: leave_one_out          # 数据划分策略：leave_one_out | last_out
 train_sliding: false          # 是否对train做滑窗扩充（true=滑窗，false=经典leave-one-out）
 min_hist_len: 2               # 滑窗最短history长度（含label前的序列长度）
-max_hist_len: 50              # 滑窗最长history长度（与max_history_len对齐）
+max_hist_len: 20              # 滑窗最长history长度（与max_history_len对齐）
 
 # Sentence Embedding (for SID generation)
 metadata: sentence
@@ -102,6 +116,11 @@ sent_emb_batch_size: 512
 # SID Quantization
 # opq_pq(默认) | rq_kmeans | none(随机映射)
 sid_quantizer: opq_pq
+# none: retain native (possibly colliding) SIDs
+# append_dedup: append a deterministic resolver digit
+# hungarian: keep SID length fixed and minimally reassign one PQ coordinate
+sid_collision_strategy: none
+collision_repair_digit: auto  # auto | 0..quantizer_n_digit-1
 rq_kmeans_niters: 20
 rq_kmeans_seed: 2026
 sid_random_seed: 2026
@@ -112,6 +131,18 @@ opq_gpu_id: 0
 faiss_omp_num_threads: 32
 force_regenerate_opq: true  # 是否强制重新生成OPQ量化结果（即使已存在）
 disable_opq: false  # 是否禁用OPQ，使用纯PQ量化
+# Optional post-Faiss PQ-centroid fine-tuning. Zero steps preserves canonical OPQ.
+opq_regularizer_steps: 0
+opq_regularizer_batch_size: 1024
+opq_regularizer_lr: 0.001
+opq_regularizer_temperature: 0.05
+opq_balance_weight: 0.0
+opq_mi_weight: 0.0
+opq_hardness_weight: 0.0
+opq_straight_through: false
+opq_anchor_weight: 0.01
+opq_regularizer_seed: 2026
+opq_regularizer_device: cuda
 
 # Training
 temperature: 0.07
@@ -123,6 +154,29 @@ warmup_steps: 10000
 epochs: 200
 max_grad_norm: 1.0
 label_smoothing: 0.1
+
+# Exact complete-SID objective. For L=4 it scores all 2^L-1 predecessor
+# subsets and log-marginalizes the L! reveal orders. It requires injective SIDs.
+path_listwise:
+  enabled: false
+  weight: 0.2
+  temperature: 1.0
+  num_negatives: 4
+  min_shared_digits: 2
+  batch_size: 16
+  score_chunk_size: 256
+  seed: 2026
+
+# MaskGR-style auxiliary denoising of semantic codes in the observed history.
+# This is off by default so historical checkpoints and experiments are
+# unchanged.  When enabled, each example samples t ~ U(min, max), corrupts
+# history SID coordinates independently, and reconstructs them with 1/t
+# weighting while still optimizing the canonical next-item objective.
+history_denoise:
+  enabled: false
+  weight: 0.2
+  mask_prob_min: 0.0
+  mask_prob_max: 1.0
 
 
 # Evaluation
@@ -167,3 +221,17 @@ ablate_decode:
 # ─── 新增：评估时将 SID 组合按簇展开到 item 再评估（可开关） ─────────────
 eval_expand_sid_to_items: false   # true=额外输出一套 _xitem 指标；false=仅原SID级指标
 eval_expand_dedup: first          # 展开前对 SID 去重策略：first（仅保留首次）
+
+# Report collision-corrected expected item-level metrics in addition to the
+# conventional SID-level metrics. This follows CCE: a hit on a collision group
+# receives fractional credit because SID generation cannot order items inside
+# that group.
+eval_collision_corrected: true
+
+# Test-only diagnostics: free-running first-error location, history-only and
+# leave-one-out code conditionals, plus catalog information allocation.
+decoder_diagnostics:
+  enabled: true
+  splits: [test]
+  conditional: true
+  catalog: true

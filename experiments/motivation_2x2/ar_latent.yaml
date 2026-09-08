@@ -1,0 +1,21 @@
+use_causal_mask: true
+teacher_forcing: true
+constrained_beam: true
+
+epochs: 50
+eval_start_epoch: 12
+eval_interval: 2
+patience: 8
+
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [8, 128, 64, 64, 64]
+    beam_search_num: [8, 256, 256, 256, 256]
+  test:
+    pre_cut_num: [8, 128, 64, 64, 64]
+    beam_search_num: [8, 256, 256, 256, 256]
+

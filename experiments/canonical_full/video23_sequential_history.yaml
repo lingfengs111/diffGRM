@@ -1,0 +1,11 @@
+# Isolate the useful part of the MaskGR-style control: preserve the stronger
+# canonical sequential target objective and add only full-history SID
+# denoising.  This avoids the harmful Uniform(t) target-loss replacement.
+history_denoise:
+  enabled: true
+  weight: 0.2
+  mask_prob_min: 0.0
+  mask_prob_max: 1.0
+decoder_diagnostics:
+  enabled: false
+

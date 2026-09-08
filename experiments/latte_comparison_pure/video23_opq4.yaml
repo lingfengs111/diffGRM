@@ -1,0 +1,26 @@
+# Cross-dataset pure-method anchor under Latte's Video23 L20 data protocol.
+category: Video_Games
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_video_game/raw_core5
+splits_dir: splits
+expected_protocol: {train: 530300, val: 94762, test: 94762, items: 25612}
+max_history_len: 20
+max_hist_len: 20
+n_digit: 4
+quantizer_n_digit: 4
+codebook_size: 256
+sid_quantizer: opq_pq
+sid_collision_strategy: none
+sent_emb_model: sentence-transformers/sentence-t5-base
+sent_emb_dim: 768
+sent_emb_pca: 192
+normalize_after_pca: false
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/cache/AmazonReviews2023CleanGR/Video_Games/processed/sentence-t5-base_latte-meta_pca192_OPQ4x256_psid.sem_ids
+sid_override_tag: latte-meta-opq4x256-psid-pure
+sid_prefix_strategy: none
+item_identity_start_digit: 0
+epochs: 160
+eval_start_epoch: 10
+eval_interval: 2
+patience: 16
+topk: [5, 10]
+metrics: [ndcg, recall]

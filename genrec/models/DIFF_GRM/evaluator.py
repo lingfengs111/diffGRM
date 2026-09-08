@@ -17,6 +17,7 @@ class DIFF_GRMEvaluator:
         self.tokenizer = tokenizer
         self.metric2func = {
             'recall': self.recall_at_k,
+            'hit': self.hit_at_k,
             'ndcg': self.ndcg_at_k
         }
 
@@ -44,6 +45,9 @@ class DIFF_GRMEvaluator:
         self.eval_expand = bool(self.config.get('eval_expand_sid_to_items', False))
         # 展开前是否对 SID 去重的策略（目前只支持 first）
         self.eval_expand_dedup = str(self.config.get('eval_expand_dedup', 'first')).lower()
+        self.eval_collision_corrected = bool(
+            self.config.get('eval_collision_corrected', True)
+        )
 
         # 取 cb2items 映射（来自 tokenizer 惰性缓存）
         self.cb2items = getattr(self.tokenizer, 'cb2items', None)
@@ -95,6 +99,10 @@ class DIFF_GRMEvaluator:
         # pos_index: (batch_size, maxk) - 已经过滤为合法序列
         # 修复：使用any()避免重复计分，只要top-k中有≥1个匹配就得1分
         return pos_index[:, :k].any(dim=1).cpu().float()
+
+    def hit_at_k(self, pos_index, k):
+        """单目标 next-item 评测下，Hit@k 与 Recall@k 完全相同。"""
+        return self.recall_at_k(pos_index, k)
 
     def ndcg_at_k(self, pos_index, k):
         """计算NDCG@k（修复：重复命中只计第一次的DCG）"""
@@ -169,6 +177,60 @@ class DIFF_GRMEvaluator:
         if hit_pos is not None and hit_pos < Kmax:
             pos[hit_pos] = True
         return pos
+
+    def _collision_corrected_metrics(self, preds, labels, k):
+        """Expected item-level Recall/NDCG under unresolved SID collisions.
+
+        A generated SID identifies an unordered collision group. Following
+        Collision-Corrected Evaluation (CCE), credit is distributed uniformly
+        over items in that group, and preceding groups consume item-ranking
+        positions in beam order.
+        """
+        preds = preds.detach().cpu()
+        labels = labels.detach().cpu()
+        recall = torch.zeros(preds.size(0), dtype=torch.float32)
+        ndcg = torch.zeros(preds.size(0), dtype=torch.float32)
+
+        for b in range(preds.size(0)):
+            target_cb = self._sid_row_to_cb(labels[b])
+            target_group_size = len(self.cb2items.get(target_cb, []))
+            if target_group_size <= 0:
+                continue
+
+            seen = set()
+            start_rank = 1
+            target_start = None
+            for row in preds[b]:
+                cb = self._sid_row_to_cb(row)
+                if cb in seen:
+                    continue
+                seen.add(cb)
+                group_size = len(self.cb2items.get(cb, []))
+                if group_size <= 0:
+                    continue
+                if cb == target_cb:
+                    target_start = start_rank
+                    break
+                start_rank += group_size
+
+            if target_start is None:
+                continue
+
+            n_in_cutoff = min(
+                target_group_size,
+                max(0, k - target_start + 1),
+            )
+            if n_in_cutoff <= 0:
+                continue
+
+            recall[b] = n_in_cutoff / target_group_size
+            discounts = [
+                1.0 / np.log2(target_start + offset + 1)
+                for offset in range(n_in_cutoff)
+            ]
+            ndcg[b] = float(sum(discounts) / target_group_size)
+
+        return recall, ndcg
 
     def _dup_ratio_per_user(self, preds, k=10):
         """
@@ -258,6 +320,29 @@ class DIFF_GRMEvaluator:
         for metric in self.config['metrics']:
             for k in self.config['topk']:
                 results[f"{metric}@{k}{suffix}"] = self.metric2func[metric](pos_index, k)
+
+        # 本项目每个样本只有一个 ground-truth next item，因此 Hit@K ==
+        # Recall@K。无论配置是否显式列出 hit，都保留该字段，方便与
+        # TIGER 等论文的指标表直接对齐。
+        for k in self.config['topk']:
+            results.setdefault(f"hit@{k}{suffix}", self.hit_at_k(pos_index, k))
+
+        if self.eval_collision_corrected:
+            for k in self.config['topk']:
+                item_recall, item_ndcg = self._collision_corrected_metrics(
+                    preds, labels, k
+                )
+                results[f"item_recall@{k}{suffix}"] = item_recall
+                results[f"item_hit@{k}{suffix}"] = item_recall
+                results[f"item_ndcg@{k}{suffix}"] = item_ndcg
+
+            if suffix == "" and 10 in self.config['topk']:
+                item_recall_10, item_ndcg_10 = self._collision_corrected_metrics(
+                    preds, labels, 10
+                )
+                results['item_weighted_score'] = (
+                    0.8 * item_ndcg_10 + 0.2 * item_recall_10
+                )
         
         # 添加加权综合分数（只在confidence模式下计算）
         if suffix == "":  # 仅confidence模式才算weighted_score
@@ -298,6 +383,11 @@ class DIFF_GRMEvaluator:
             for metric in self.config['metrics']:
                 for k in self.config['topk']:
                     results[f"{metric}@{k}{suffix}_xitem"] = self.metric2func[metric](pos_index_item, k)
+            for k in self.config['topk']:
+                results.setdefault(
+                    f"hit@{k}{suffix}_xitem",
+                    self.hit_at_k(pos_index_item, k),
+                )
 
             ndcg_10_x = self.ndcg_at_k(pos_index_item, k=10)
             recall_10_x = self.recall_at_k(pos_index_item, k=10)
@@ -327,4 +417,4 @@ class DIFF_GRMEvaluator:
                     avg_dup10 = sum(self.batch_dup10_ratios) / len(self.batch_dup10_ratios)
                     print(f"[SID_STATS] 用户内部 Top-10 平均重复率: {avg_dup10:.3f}")
             else:
-                print(f"[SID_STATS] 总体合法率: {legal_ratio:.3f}, 总体重复率: {duplicate_ratio:.3f}") 
+                print(f"[SID_STATS] 总体合法率: {legal_ratio:.3f}, 总体重复率: {duplicate_ratio:.3f}")

@@ -17,11 +17,15 @@ class AR_GRMEvaluator:
         self.tokenizer = tokenizer
         self.metric2func = {
             'recall': self.recall_at_k,
+            'hit': self.hit_at_k,
             'ndcg': self.ndcg_at_k
         }
 
         self.pad_token = self.tokenizer.pad_token
         self.maxk = max(config['topk'])
+        self.item_identity_start_digit = int(
+            config.get('item_identity_start_digit', 0)
+        )
         
         # 仅统计每个 batch 的 Top-10 合法率
         self.batch_legal_at10 = []
@@ -55,14 +59,33 @@ class AR_GRMEvaluator:
         
         for i in range(B):
             # 获取真标签
-            cur_label = labels[i].tolist()  # [n_digit]
+            cur_label = labels[i, self.item_identity_start_digit:].tolist()
+            target_item_id = None
+            if self.tokenizer.has_item_aliases:
+                # PIT aliases are different legal paths to one concrete item.
+                # Evaluation must therefore compare item identities, never the
+                # literal canonical label path.
+                target_item_id = self.tokenizer.codebooks_to_item_id(
+                    labels[i].tolist()
+                )
+                if target_item_id is None:
+                    raise ValueError(
+                        f'Ground-truth SID is absent from item mapping: {labels[i].tolist()}'
+                    )
             
             for j in range(maxk):
                 # 获取预测序列
-                cur_pred = preds[i, j].tolist()  # [n_digit]
+                cur_pred = preds[i, j, self.item_identity_start_digit:].tolist()
                 
                 # 比较codebook IDs（0-255范围）
-                if cur_pred == cur_label:
+                if self.tokenizer.has_item_aliases:
+                    is_match = (
+                        self.tokenizer.codebooks_to_item_id(preds[i, j].tolist())
+                        == target_item_id
+                    )
+                else:
+                    is_match = cur_pred == cur_label
+                if is_match:
                     pos_index[i, j] = True
                     break  # 找到第一个匹配就停止，避免重复计分
         
@@ -73,6 +96,10 @@ class AR_GRMEvaluator:
         # pos_index: (batch_size, maxk) - 已经过滤为合法序列
         # 修复：使用any()避免重复计分，只要top-k中有≥1个匹配就得1分
         return pos_index[:, :k].any(dim=1).cpu().float()
+
+    def hit_at_k(self, pos_index, k):
+        """单目标 next-item 评测下，Hit@k 与 Recall@k 完全相同。"""
+        return self.recall_at_k(pos_index, k)
 
     def ndcg_at_k(self, pos_index, k):
         """计算NDCG@k（修复：重复命中只计第一次的DCG）"""
@@ -170,6 +197,10 @@ class AR_GRMEvaluator:
         for metric in self.config['metrics']:
             for k in self.config['topk']:
                 results[f"{metric}@{k}{suffix}"] = self.metric2func[metric](pos_index, k)
+
+        # 始终显式输出 Hit@K，便于与报告 Hit Rate 的工作直接比较。
+        for k in self.config['topk']:
+            results.setdefault(f"hit@{k}{suffix}", self.hit_at_k(pos_index, k))
         
         # 添加加权综合分数（只在confidence模式下计算）
         if suffix == "":  # 仅confidence模式才算weighted_score

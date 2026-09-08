@@ -1,0 +1,26 @@
+use_causal_mask: true
+teacher_forcing: true
+constrained_beam: true
+
+# One M-step after decoder-aware discrete assignment.  Warm-starting preserves
+# the code-token semantics learned by the E-step scorer while allowing all
+# sequence and decoder parameters to adapt to the new item/code mapping.
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2014_beauty14_opq_cf_ar_constrained_v2/pytorch_model.bin
+epochs: 40
+eval_start_epoch: 8
+eval_interval: 2
+patience: 6
+lr: 0.001
+warmup_steps: 100
+
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [32, 32, 32, 32]
+    beam_search_num: [32, 32, 32, 32]
+  test:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]

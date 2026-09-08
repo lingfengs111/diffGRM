@@ -1,0 +1,45 @@
+# Experiment result index
+
+Generated deterministically by `python scripts/build_results_index.py`.
+Rows are comparable only when their protocol notes agree.
+
+| Study | Date | Status | Dataset | Split | Method | NDCG@5 | Recall@5 | NDCG@10 | Recall@10 | Candidate R@72 | Notes |
+|---|---|---|---|---|---|---:|---:|---:|---:|---:|---|
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | AR-only reranking of same proposals | — | — | 0.029827 | 0.056234 | — | L20; K=72 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | DiffGRM-init one-pass pairwise + AR fusion | — | — | 0.031912 | 0.059785 | — | L20; K=72 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | SASRec full softmax | — | — | 0.030341 | 0.055990 | — | L20 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | collision-free guided DiffGRM direct | — | — | 0.027057 | 0.051376 | — | L20; exact-item |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | random one-pass drafter only | — | — | 0.029519 | 0.055694 | — | L20; K=72 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | random one-pass pairwise + AR fusion | — | — | 0.032250 | 0.059855 | — | L20; K=72; canonical row |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Music23 | test | standalone constrained AR | — | — | 0.028986 | 0.054562 | — | L20 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | DiffGRM-init one-pass pairwise + AR fusion | — | — | 0.048585 | 0.091123 | — | historical L50; K=72; canonical row |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | Exact-MIPS ID drafter + AR fusion | — | — | 0.046711 | 0.088284 | — | historical L50 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | SASRec full softmax | — | — | 0.047593 | 0.087208 | — | historical L50 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | collision-free guided DiffGRM direct | — | — | 0.043537 | 0.081657 | — | historical L50; exact-item |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | random one-pass pairwise + AR fusion | — | — | 0.048009 | 0.090289 | — | historical L50; K=72 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | shared-encoder AR control | — | — | 0.045841 | 0.085942 | — | historical L50 |
+| [20260901_canonical_baselines](20260901_canonical_baselines/summary.md) | 2026-09-01 | complete | Video23 | test | standalone constrained AR | — | — | 0.044655 | 0.084148 | — | historical L50 |
+| [20260903_objective_ablation_negatives](20260903_objective_ablation_negatives/summary.md) | 2026-09-03 | complete | Video23 | test | AR-residual + listwise hard negatives | — | — | 0.048589 | 0.090986 | 0.233226 | full historical L50 test; not promoted |
+| [20260903_objective_ablation_negatives](20260903_objective_ablation_negatives/summary.md) | 2026-09-03 | complete | Video23 | validation | Domino causal correction beta=0.1 | — | — | 0.055865 | 0.106287 | 0.267301 | historical L50; rejected versus beta=0 after AR fusion; no nonzero-beta test |
+| [20260903_objective_ablation_negatives](20260903_objective_ablation_negatives/summary.md) | 2026-09-03 | complete | Video23 | test | frozen canonical base | — | — | 0.048585 | 0.091123 | 0.233585 | full historical L50 test; reference for residual objective |
+| [20260903_objective_ablation_negatives](20260903_objective_ablation_negatives/summary.md) | 2026-09-03 | complete | Video23-medium-16384 | test | boundary-negative residual | — | — | 0.047756 | 0.090515 | 0.234741 | historical L50; capped subset; lower final NDCG@10 |
+| [20260903_objective_ablation_negatives](20260903_objective_ablation_negatives/summary.md) | 2026-09-03 | complete | Video23-medium-16384 | test | frozen base for boundary-negative diagnostic | — | — | 0.048029 | 0.090454 | 0.234131 | historical L50; capped subset, not full-test comparable |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Science23 | test | MLP capacity control | 0.018895 | 0.029028 | 0.023969 | 0.044876 | 0.116054 | L20; fused-NDCG checkpoint; alpha=0.75 |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Science23 | test | local Latte beam-500 | 0.018723 | 0.028773 | 0.024109 | 0.045523 | — | L20; RQ-KMeans3 plus latent token; different architecture/budget |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Science23 | test | pooled, candidate-recall checkpoint | 0.019138 | 0.029381 | 0.024303 | 0.045386 | — | L20; retained old main method |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Science23 | test | pooled, fused-NDCG checkpoint | 0.018783 | 0.029009 | 0.023881 | 0.044896 | 0.122742 | L20; alpha=0.75 |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Science23 | test | two-interest attention | 0.018582 | 0.028263 | 0.024015 | 0.045170 | 0.122095 | L20; fused-NDCG checkpoint; alpha=0.75 |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Video23 | test | MLP capacity control | 0.037286 | 0.057249 | 0.047999 | 0.090543 | 0.230335 | L20; fused-NDCG checkpoint; alpha=0.75 |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Video23 | test | local Latte beam-500 | 0.040058 | 0.061132 | 0.051082 | 0.095407 | — | L20; RQ-KMeans3 plus latent token; different architecture/budget |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Video23 | test | pooled, candidate-recall checkpoint | 0.037372 | 0.057038 | 0.047899 | 0.089793 | — | L20; not the historical L50 canonical row |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Video23 | test | pooled, fused-NDCG checkpoint | 0.037772 | 0.057987 | 0.048461 | 0.091281 | 0.233501 | L20; alpha=0.75; not the historical L50 canonical row |
+| [20260907_history_interest](20260907_history_interest/summary.md) | 2026-09-07 | complete | Video23 | test | two-interest attention | 0.037623 | 0.057629 | 0.048483 | 0.091408 | 0.235453 | L20; fused-NDCG checkpoint; alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | OPQ4 drafter / OPQ4 AR, ESM | 0.019138 | 0.029381 | 0.024303 | 0.045386 | 0.122212 | matched tokenizer; alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | OPQ4 drafter / RQ-KMeans3 AR, ESM | 0.019321 | 0.030009 | 0.024879 | 0.047230 | 0.122212 | valid result_v2; true dual-view; alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans3 PSID-style AR beam-500, ESM | 0.018541 | 0.028969 | 0.023633 | 0.044778 | — | AR generation baseline; no proposal candidate recall |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans3 drafter / OPQ4 AR, ESM | 0.018148 | 0.028420 | 0.023525 | 0.045190 | 0.120330 | valid result_v2; reverse dual-view; alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans3 drafter / matched AR, ESM | 0.018548 | 0.028969 | 0.024061 | 0.046053 | 0.120330 | alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans3 drafter / matched AR, Hungarian | 0.018239 | 0.029067 | 0.023817 | 0.046445 | 0.122134 | alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans4 drafter / matched AR, ESM | 0.018424 | 0.028538 | 0.023793 | 0.045307 | 0.125998 | alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ-KMeans4 drafter / matched AR, Hungarian | 0.018932 | 0.029185 | 0.024229 | 0.045582 | 0.125606 | alpha=0.75 |
+| [20260907_tokenizer_controls](20260907_tokenizer_controls/summary.md) | 2026-09-07 | running | Science23 | test | RQ2+OPQ2 drafter / matched AR, Hungarian | 0.019270 | 0.029970 | 0.024290 | 0.045582 | 0.124625 | alpha=0.75 |

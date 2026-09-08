@@ -1,0 +1,7 @@
+# Keep the one-pass model configuration compatible with the Music23 guided
+# DiffGRM checkpoint without overriding the domain/L20 settings.
+masking_strategy: guided
+guided_steps: auto
+guided_conf_metric: msp
+guided_refresh_each_step: false
+guided_select: least

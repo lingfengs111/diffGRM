@@ -1,0 +1,8 @@
+category: Video_Games
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_video_game/raw_core5
+item_vocab_file: item_vocab.csv
+item_texts_file: item_texts.csv
+splits_dir: splits
+amazon_standard_max_history_len: 20
+metadata: sentence
+split: prepared

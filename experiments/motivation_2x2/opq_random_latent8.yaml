@@ -1,0 +1,14 @@
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+collision_repair_digit: auto
+disable_opq: false
+
+# Latte-style matched control: the four OPQ digits identify the item; the
+# leading latent is sampled during training and marginalized during inference.
+n_digit: 5
+quantizer_n_digit: 4
+sid_prefix_strategy: random_latent
+n_latent_tokens: 8
+item_identity_start_digit: 1
+latent_item_aggregation: logsumexp
+

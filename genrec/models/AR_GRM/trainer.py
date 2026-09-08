@@ -17,6 +17,11 @@ from collections import defaultdict, OrderedDict
 from genrec.utils import get_total_steps, get_file_name, config_for_log
 from genrec.model import AbstractModel
 from genrec.tokenizer import AbstractTokenizer
+from genrec.diagnostics import (
+    catalog_diagnostics,
+    conditional_diagnostics,
+    generation_diagnostics,
+)
 
 
 class AR_GRMTrainer:
@@ -38,10 +43,89 @@ class AR_GRMTrainer:
         )
         os.makedirs(os.path.dirname(self.saved_model_ckpt), exist_ok=True)
 
+    def _select_pit_alias_targets(self, batch, epoch):
+        """Hard-EM target step: choose the highest-scoring path per history/item."""
+        strategy = str(self.config.get('pit_alias_selection', 'none')).lower()
+        if strategy == 'none':
+            return batch, None
+        if strategy != 'min_nll':
+            raise ValueError(
+                f'pit_alias_selection must be none|min_nll, got {strategy}'
+            )
+        if not self.tokenizer.has_item_aliases:
+            raise ValueError('pit_alias_selection=min_nll requires sid_alias_path')
+
+        candidates = self.tokenizer.alias_codebook_candidates(
+            batch['decoder_labels']
+        )
+        warmup_epochs = int(self.config.get('pit_alias_warmup_epochs', 0))
+        if epoch < warmup_epochs:
+            # A canonical checkpoint has never seen the new branch and would
+            # immediately collapse hard-EM to path 0. Balanced exposure gives
+            # every legal path a learned score before assignments become hard.
+            best_index = torch.randint(
+                candidates.shape[1],
+                (candidates.shape[0],),
+                device=candidates.device,
+            )
+            scores = None
+        else:
+            was_training = self.model.training
+            self.model.eval()
+            score_model = self.accelerator.unwrap_model(self.model)
+            with torch.no_grad():
+                scores = score_model.score_candidate_paths(
+                    batch,
+                    candidates,
+                    chunk_size=self.config.get('pit_score_chunk_size'),
+                )
+                best_index = scores.argmax(dim=1)
+            if was_training:
+                self.model.train()
+
+            exploration = float(self.config.get('pit_alias_exploration_rate', 0.0))
+            if exploration > 0:
+                explore = torch.rand(
+                    best_index.shape, device=best_index.device
+                ).lt(exploration)
+                random_index = torch.randint(
+                    candidates.shape[1],
+                    best_index.shape,
+                    device=best_index.device,
+                )
+                best_index = torch.where(explore, random_index, best_index)
+
+        row = torch.arange(candidates.shape[0], device=candidates.device)
+        selected = candidates[row, best_index]
+
+        selected_batch = dict(batch)
+        selected_batch['decoder_input_ids'] = selected
+        selected_batch['decoder_labels'] = selected
+        stats = {
+            'n': int(best_index.numel()),
+            'canonical': int(best_index.eq(0).sum().item()),
+            'score_gain': (
+                float((scores[row, best_index] - scores[:, 0]).sum().item())
+                if scores is not None else 0.0
+            ),
+            'warmup': scores is None,
+        }
+        return selected_batch, stats
+
     def fit(self, train_dataloader, val_dataloader):
         """标准训练流程（自回归损失在 model.forward 内实现）"""
+        trainable_parameters = [
+            parameter for parameter in self.model.parameters()
+            if parameter.requires_grad
+        ]
+        if not trainable_parameters:
+            raise ValueError('AR_GRM has no trainable parameters')
+        self.log(
+            '[TRAINING] Trainable parameters: '
+            f'{sum(parameter.numel() for parameter in trainable_parameters):,}'
+        )
         optimizer = AdamW(
-            self.model.parameters(),
+            trainable_parameters,
             lr=self.config['lr'],
             weight_decay=self.config['weight_decay']
         )
@@ -89,11 +173,21 @@ class AR_GRMTrainer:
         eval_start_epoch = self.config.get('eval_start_epoch', 1)
         eval_interval = self.config['eval_interval']
         self.log(f'[TRAINING] Evaluation config: start from epoch {eval_start_epoch}, interval: {eval_interval}')
+        if str(self.config.get('pit_alias_selection', 'none')).lower() != 'none':
+            self.log(
+                '[TRAINING] PIT-lite hard target selection enabled: '
+                f'{self.config.get("pit_alias_selection")}, '
+                f'item aggregation={self.config.get("item_path_aggregation", "logsumexp")}'
+            )
 
         for epoch in range(n_epochs):
             # Training
             self.model.train()
             total_loss = 0.0
+            pit_examples = 0
+            pit_canonical = 0
+            pit_score_gain = 0.0
+            pit_warmup = False
             train_progress_bar = tqdm(
                 train_dataloader,
                 total=len(train_dataloader),
@@ -102,7 +196,14 @@ class AR_GRMTrainer:
             
             for batch in train_progress_bar:
                 optimizer.zero_grad()
-                
+
+                batch, pit_stats = self._select_pit_alias_targets(batch, epoch)
+                if pit_stats is not None:
+                    pit_examples += pit_stats['n']
+                    pit_canonical += pit_stats['canonical']
+                    pit_score_gain += pit_stats['score_gain']
+                    pit_warmup = pit_warmup or pit_stats['warmup']
+
                 outputs = self.model(batch, return_loss=True)
                 loss = outputs.loss
                 
@@ -115,6 +216,18 @@ class AR_GRMTrainer:
 
             self.accelerator.log({"Loss/train_loss": total_loss / len(train_dataloader)}, step=epoch + 1)
             self.log(f'[Epoch {epoch + 1}] Train Loss: {total_loss / len(train_dataloader):.6f}')
+            if pit_examples:
+                pit_log = {
+                    'PIT/canonical_rate': pit_canonical / pit_examples,
+                    'PIT/mean_selected_score_gain': pit_score_gain / pit_examples,
+                }
+                self.accelerator.log(pit_log, step=epoch + 1)
+                self.log(
+                    f'[Epoch {epoch + 1}] PIT target selection: '
+                    f'phase={"balanced-warmup" if pit_warmup else "hard-EM"}, '
+                    f'canonical={pit_log["PIT/canonical_rate"]:.4f}, '
+                    f'mean_logp_gain={pit_log["PIT/mean_selected_score_gain"]:.4f}'
+                )
 
             # Evaluation - 修改早停逻辑
             eval_start_epoch = self.config.get('eval_start_epoch', 1)  # 默认从第1个epoch开始评估
@@ -184,6 +297,9 @@ class AR_GRMTrainer:
         
         from .evaluator import AR_GRMEvaluator
         evaluator = AR_GRMEvaluator(self.config, self.tokenizer)
+        diag_cfg = self.config.get('decoder_diagnostics', {}) or {}
+        diag_splits = set(diag_cfg.get('splits', ['test']))
+        run_diag = bool(diag_cfg.get('enabled', False)) and split in diag_splits
         
         for batch in val_progress_bar:
             with torch.no_grad():
@@ -196,10 +312,42 @@ class AR_GRMTrainer:
                 for key, values in batch_results.items():
                     all_results[key].extend(values.tolist())
 
+                if run_diag:
+                    identity_start = int(
+                        self.config.get('item_identity_start_digit', 0)
+                    )
+                    generated = generation_diagnostics(
+                        preds[:, :, identity_start:],
+                        labels[:, identity_start:],
+                        prefix=(
+                            'diag/free_ar_identity'
+                            if identity_start else 'diag/free_ar'
+                        ),
+                    )
+                    for key, values in generated.items():
+                        all_results[key].extend(values.detach().cpu().tolist())
+
+                    if bool(diag_cfg.get('conditional', True)):
+                        # Validation collators do not carry decoder inputs.  The
+                        # target path supplies the teacher-forced prefix here.
+                        diagnostic_batch = dict(batch)
+                        diagnostic_batch['decoder_input_ids'] = labels
+                        diagnostic_batch['decoder_labels'] = labels
+                        oracle = self.model(diagnostic_batch, return_loss=True)
+                        conditional = conditional_diagnostics(
+                            oracle.logits,
+                            labels,
+                            prefix='diag/oracle_prefix_ar',
+                        )
+                        for key, values in conditional.items():
+                            all_results[key].extend(values.detach().cpu().tolist())
+
         # 计算平均指标
         final_results = OrderedDict()
         for key, values_list in all_results.items():
             final_results[key] = np.mean(values_list)
+        if run_diag and bool(diag_cfg.get('catalog', True)):
+            final_results.update(catalog_diagnostics(self.tokenizer, self.config['codebook_size']))
 
         # 🚀 打印最终统计结果
         evaluator.print_final_stats()
@@ -217,4 +365,4 @@ class AR_GRMTrainer:
             if self.accelerator.is_main_process:
                 print(message)
         else:
-            print(message) 
+            print(message)

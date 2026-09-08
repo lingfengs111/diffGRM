@@ -1,0 +1,23 @@
+# PIT-lite on the canonical full Beauty-2014 OPQ catalog.
+# Histories retain canonical OPQ SIDs; only target paths are selected by AR NLL.
+sid_alias_path: /home/lingfengs111/codes/GR_variant/DiffGRM/runs/canonical_full/pit_lite/beauty14_opq_alias2.json
+sid_alias_tag: beauty14-opq-route1-alias2
+pit_alias_selection: min_nll
+pit_score_chunk_size: 2
+pit_alias_warmup_epochs: 2
+pit_alias_exploration_rate: 0.05
+item_path_aggregation: logsumexp
+
+# Fine-tune the established full-data AR model rather than relearning history.
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2014CleanGR_beauty14_full_opq_cf_ar_v1/pytorch_model.bin
+lr: 0.0003
+warmup_steps: 100
+epochs: 20
+eval_start_epoch: 2
+eval_interval: 2
+patience: 4
+label_smoothing: 0.1
+
+# Two alias scores plus one gradient forward use more memory than baseline.
+train_batch_size: 192
+eval_batch_size: 32

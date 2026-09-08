@@ -1,0 +1,7 @@
+category: Toys_and_Games
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon14_toys/raw_core5
+expected_protocol:
+  train: 109361
+  val: 19412
+  test: 19412
+  items: 11924

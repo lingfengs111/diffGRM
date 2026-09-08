@@ -1,0 +1,11 @@
+# Conservative balance/independence regularization for OPQ/PQ centroids.
+force_regenerate_opq: true
+opq_regularizer_steps: 150
+opq_regularizer_batch_size: 1024
+opq_regularizer_lr: 0.0003
+opq_regularizer_temperature: 0.05
+opq_balance_weight: 0.005
+opq_mi_weight: 0.005
+opq_anchor_weight: 1.0
+opq_regularizer_seed: 2026
+opq_regularizer_device: cuda

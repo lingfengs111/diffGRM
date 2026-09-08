@@ -1,0 +1,22 @@
+# Full Amazon Reviews 2023 Musical Instruments transfer protocol.
+# L20 is the canonical protocol for Music23 and all future Amazon23 domains;
+# the existing Video23 L50 suite remains a historical exception only.
+category: Musical_Instruments
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_music/raw_core5
+expected_protocol:
+  train: 339519
+  val: 57439
+  test: 57439
+  items: 24587
+
+max_history_len: 20
+max_hist_len: 20
+
+# A high ceiling plus validation patience avoids reproducing the earlier
+# short-cap ambiguity. Evaluation starts early enough to preserve a genuine
+# best checkpoint if the smaller Music domain converges before Video23 did.
+epochs: 160
+eval_start_epoch: 10
+eval_interval: 2
+patience: 15
+early_stopping_min_delta: 0.0

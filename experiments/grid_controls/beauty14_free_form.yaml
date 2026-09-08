@@ -1,0 +1,17 @@
+# GRID-style decoding control: remove the catalog trie while keeping the
+# checkpoint, model, beam budget, data, and item-level evaluator unchanged.
+constrained_beam: false
+filter_illegal_final: false
+decoder_diagnostics:
+  enabled: false
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]
+  test:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]

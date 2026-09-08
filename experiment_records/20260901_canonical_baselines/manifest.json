@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "record_id": "20260901_canonical_baselines",
+  "title": "Canonical Video23 and Music23 structured-drafter baselines",
+  "date": "2026-09-01",
+  "status": "complete",
+  "datasets": ["Video23", "Music23"],
+  "tags": ["canonical", "complementarity", "one-pass", "ar-verifier"],
+  "protocol": "Collision-free exact-item evaluation. Video23 rows use historical L50; Music23 rows use L20. Test NDCG@10 and Recall@10 are reported.",
+  "source_paths": [
+    "RESEARCH_HANDOFF_2026-09-01.md",
+    "runs/complementarity_analysis/COMPLEMENTARITY_FINDINGS_2026-09-02.md",
+    "runs/canonical_full/video23_paper_scoreboard.md",
+    "runs/music23_transfer/random_encoder4_pairwise_ar/result.json"
+  ],
+  "git_snapshot": {"commit": "ad7b971c7e52", "branch": "main", "dirty": true}
+}

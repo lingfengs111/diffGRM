@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "record_id": "20260903_objective_ablation_negatives",
+  "title": "Domino, AR-residual listwise, and rank-boundary ablations",
+  "date": "2026-09-03",
+  "status": "complete",
+  "datasets": ["Video23"],
+  "tags": ["negative-result", "domino", "residual-distillation", "rank-aware", "hard-negative"],
+  "protocol": "Historical Video23 L50 line. Full runs use 530300/94762/94762; medium diagnostics use 65536/16384/16384 and are separately labeled.",
+  "source_paths": [
+    "runs/domino_causal_corrector/video23_full_20260902/FINDINGS.md",
+    "runs/ar_residual_candidate/video23_full_20260903/FINDINGS.md",
+    "runs/rank32_handoff/video23_medium_20260903/FINDINGS.md"
+  ],
+  "git_snapshot": {"commit": "ad7b971c7e52", "branch": "main", "dirty": true}
+}

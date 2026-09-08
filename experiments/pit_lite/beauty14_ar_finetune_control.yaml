@@ -1,0 +1,12 @@
+# Equal-budget control for PIT-lite: identical warm start/optimizer/evaluation,
+# but one canonical path per item and no dynamic alias assignment.
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2014CleanGR_beauty14_full_opq_cf_ar_v1/pytorch_model.bin
+lr: 0.0003
+warmup_steps: 100
+epochs: 20
+eval_start_epoch: 2
+eval_interval: 2
+patience: 4
+label_smoothing: 0.1
+train_batch_size: 192
+eval_batch_size: 32

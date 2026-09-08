@@ -1,0 +1,7 @@
+category: CDs_and_Vinyl
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon14_cds/raw_core5
+expected_protocol:
+  train: 871818
+  val: 75258
+  test: 75258
+  items: 64443

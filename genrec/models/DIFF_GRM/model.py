@@ -12,6 +12,11 @@ from genrec.model import AbstractModel
 from genrec.dataset import AbstractDataset
 from genrec.tokenizer import AbstractTokenizer
 from .ablate_decode import decode_ablate_confidence
+from .path_objective import (
+    build_hard_negative_table,
+    order_marginal_dp,
+    subset_masks,
+)
 
 
 def make_norm(norm_type: str, dim: int, eps: float):
@@ -203,6 +208,8 @@ class ModelOutput:
         self.logits = None
         self.hidden_states = None
         self.past_key_values = None
+        self.token_loss = None
+        self.path_loss = None
 
 
 class DIFF_GRM(AbstractModel):
@@ -259,8 +266,7 @@ class DIFF_GRM(AbstractModel):
             # 置信度引导的连贯多视图（每个batch由模型决定揭示顺序）
             guided_cfg = config.get('guided_steps', 'auto')
             self.guided_steps = self.n_digit if guided_cfg in (None, 'auto') else int(guided_cfg)
-            # 限制最多 4 步（你现在 n_digit=4，因此刚好 4）
-            self.guided_steps = min(self.guided_steps, self.n_digit, 4)
+            self.guided_steps = min(self.guided_steps, self.n_digit)
             self.guided_conf_metric = config.get('guided_conf_metric', 'msp')
             assert self.guided_conf_metric in ('msp', 'entropy'), \
                 f"guided_conf_metric must be one of ['msp','entropy'], got {self.guided_conf_metric}"
@@ -341,9 +347,21 @@ class DIFF_GRM(AbstractModel):
         
         # 新增：掩码嵌入表，用于表示被掩码的位置
         self.mask_emb_table = nn.Embedding(self.n_digit, self.n_embd)
+
+        # Optional MaskGR-style auxiliary objective: corrupt semantic codes in
+        # the observed history, reconstruct them from the bidirectional history
+        # encoder, and use the corrupted history for next-item denoising.  This
+        # keeps the canonical encoder-decoder architecture fixed while testing
+        # whether dense full-history masking supervision strengthens routing.
+        self.history_denoise_cfg = config.get('history_denoise', {}) or {}
+        self.history_denoise_enabled = bool(
+            self.history_denoise_cfg.get('enabled', False)
+        )
+        if self.history_denoise_enabled:
+            self.history_mask_emb_table = nn.Embedding(self.n_digit, self.n_embd)
         
         # 位置编码：只为encoder添加绝对位置编码（与RPG_ED一致）
-        self.max_history_len = config.get('max_history_len', 50)  # 从config读取，默认50
+        self.max_history_len = config.get('max_history_len', 20)  # Amazon 默认协议
         self.pos_emb_enc = nn.Embedding(self.max_history_len, self.n_embd)
         # 移除decoder位置编码，decoder只使用掩码
         
@@ -390,6 +408,22 @@ class DIFF_GRM(AbstractModel):
         # Initialize weights
         self.apply(self._init_weights)
 
+        # Optional complete-SID listwise objective. It is deliberately enabled
+        # only on injective catalog codes: otherwise an item-level path target
+        # is not well-defined.
+        self.path_listwise_cfg = self.config.get('path_listwise', {}) or {}
+        if isinstance(self.path_listwise_cfg, str):
+            import ast
+            import json
+            try:
+                self.path_listwise_cfg = json.loads(self.path_listwise_cfg)
+            except Exception:
+                self.path_listwise_cfg = ast.literal_eval(self.path_listwise_cfg)
+        self.path_listwise_enabled = bool(self.path_listwise_cfg.get('enabled', False))
+        self._path_code_to_row = None
+        if self.path_listwise_enabled:
+            self._init_path_listwise_catalog(dataset, tokenizer)
+
         # 当启用 ablation 时，自动注入 confidence_s1/s2/s3 模式以确保评估阶段会跑三种
         ab_cfg = self.config.get('ablate_decode', {}) or {}
         if bool(ab_cfg.get('enabled', False)):
@@ -405,6 +439,114 @@ class DIFF_GRM(AbstractModel):
                     if m not in modes:
                         modes.insert(0, m)
             self.config['beam_search_modes'] = modes
+
+    def _init_path_listwise_catalog(self, dataset, tokenizer):
+        """Build injective catalog codes and deterministic hard negatives."""
+        catalog_codes = np.zeros((dataset.n_items - 1, self.n_digit), dtype=np.int64)
+        for item_id in range(1, dataset.n_items):
+            item = dataset.id_mapping['id2item'][item_id]
+            token_ids = tokenizer.item2tokens[item]
+            if len(token_ids) != self.n_digit:
+                raise ValueError(
+                    f"catalog item {item!r} has SID length {len(token_ids)}, "
+                    f"expected {self.n_digit}"
+                )
+            for digit, token_id in enumerate(token_ids):
+                catalog_codes[item_id - 1, digit] = int(token_id) - (
+                    tokenizer.sid_offset + digit * self.codebook_size
+                )
+
+        unique_count = len(set(map(tuple, catalog_codes.tolist())))
+        if unique_count != catalog_codes.shape[0]:
+            raise ValueError(
+                "path_listwise requires collision-free SIDs, but catalog has "
+                f"{catalog_codes.shape[0] - unique_count} duplicate excess items"
+            )
+
+        num_negatives = int(self.path_listwise_cfg.get('num_negatives', 4))
+        negative_ids = build_hard_negative_table(
+            catalog_codes,
+            num_negatives=num_negatives,
+            min_shared_digits=int(self.path_listwise_cfg.get('min_shared_digits', 2)),
+            seed=int(self.path_listwise_cfg.get('seed', 2026)),
+        )
+        self.register_buffer(
+            '_path_catalog_codes', torch.from_numpy(catalog_codes), persistent=False
+        )
+        self.register_buffer(
+            '_path_negative_ids', torch.from_numpy(negative_ids), persistent=False
+        )
+        self._path_code_to_row = {
+            tuple(int(value) for value in row): idx
+            for idx, row in enumerate(catalog_codes)
+        }
+        print(
+            f"[PATH_LISTWISE] enabled: catalog={catalog_codes.shape[0]}, "
+            f"negatives={num_negatives}, exact_states={(1 << self.n_digit) - 1}"
+        )
+
+    def _path_candidates(self, target_codes: torch.Tensor) -> torch.Tensor:
+        """Return positive-first candidate lists for an item target batch."""
+        rows = []
+        for code in target_codes.detach().cpu().tolist():
+            key = tuple(int(value) for value in code)
+            if key not in self._path_code_to_row:
+                raise KeyError(f"target SID {key} is absent from the catalog")
+            rows.append(self._path_code_to_row[key])
+        row_ids = torch.tensor(rows, device=target_codes.device, dtype=torch.long)
+        negative_ids = self._path_negative_ids[row_ids]
+        negative_codes = self._path_catalog_codes[negative_ids]
+        return torch.cat([target_codes[:, None, :], negative_codes], dim=1)
+
+    def _order_marginal_path_scores(
+        self,
+        encoder_hidden: torch.Tensor,
+        candidate_codes: torch.Tensor,
+    ) -> torch.Tensor:
+        """Exactly score all reveal orders for a small candidate list."""
+        batch_size, n_candidates, n_digit = candidate_codes.shape
+        if n_digit != self.n_digit:
+            raise ValueError(f"candidate SID width {n_digit} != model width {self.n_digit}")
+
+        visible, masked = subset_masks(self.n_digit, candidate_codes.device)
+        n_states = visible.shape[0]
+        flat_codes = candidate_codes[:, :, None, :].expand(
+            batch_size, n_candidates, n_states, n_digit
+        ).reshape(-1, n_digit)
+        flat_visible = visible[None, None, :, :].expand(
+            batch_size, n_candidates, n_states, n_digit
+        ).reshape(-1, n_digit)
+        flat_masks = masked[None, None, :, :].expand(
+            batch_size, n_candidates, n_states, n_digit
+        ).reshape(-1, n_digit)
+        decoder_inputs = torch.where(flat_visible, flat_codes, torch.zeros_like(flat_codes))
+        encoder_rows = torch.arange(batch_size, device=candidate_codes.device)[:, None, None]
+        encoder_rows = encoder_rows.expand(batch_size, n_candidates, n_states).reshape(-1)
+
+        transition_chunks = []
+        chunk_size = int(self.path_listwise_cfg.get('score_chunk_size', 256))
+        for start in range(0, flat_codes.shape[0], chunk_size):
+            end = min(start + chunk_size, flat_codes.shape[0])
+            outputs = self.forward_decoder_only(
+                {
+                    'decoder_input_ids': decoder_inputs[start:end],
+                    'encoder_hidden': encoder_hidden[encoder_rows[start:end]],
+                    'mask_positions': flat_masks[start:end].float(),
+                },
+                return_loss=False,
+                digit=None,
+                use_cache=False,
+            )
+            log_probs = F.log_softmax(outputs.logits, dim=-1)
+            target_log_probs = log_probs.gather(
+                dim=-1, index=flat_codes[start:end, :, None]
+            ).squeeze(-1)
+            transition_chunks.append(target_log_probs)
+
+        transitions = torch.cat(transition_chunks, dim=0).reshape(
+            batch_size, n_candidates, n_states, n_digit
+        )
+        return order_marginal_dp(transitions)
 
     def resample_mask_prob_if_needed(self):
         """
@@ -443,7 +585,7 @@ class DIFF_GRM(AbstractModel):
         elif strategy == 'guided':
             guided_cfg = kw.get('guided_steps', self.config.get('guided_steps', 'auto'))
             self.guided_steps = self.n_digit if guided_cfg in (None, 'auto') else int(guided_cfg)
-            self.guided_steps = min(self.guided_steps, self.n_digit, 4)
+            self.guided_steps = min(self.guided_steps, self.n_digit)
             self.guided_conf_metric = kw.get('guided_conf_metric', self.config.get('guided_conf_metric', 'msp'))
             self.guided_select = kw.get('guided_select', self.config.get('guided_select', 'least'))
             # 注意：forward 里读 self.config['guided_refresh_each_step']，所以要同步回 config
@@ -550,6 +692,30 @@ class DIFF_GRM(AbstractModel):
         assert bool(valid_hist), \
             f"history_sid 应为 codebook id(0..{self.codebook_size-1}) 或 -1(PAD)，但发现越界值"
         
+        clean_history_sid = history_sid
+        history_code_mask = None
+        if self.training and self.history_denoise_enabled:
+            low = float(self.history_denoise_cfg.get('mask_prob_min', 0.0))
+            high = float(self.history_denoise_cfg.get('mask_prob_max', 1.0))
+            if not (0.0 <= low <= high <= 1.0):
+                raise ValueError(
+                    'history_denoise mask_prob_min/max must satisfy '
+                    f'0 <= min <= max <= 1, got {low}, {high}'
+                )
+            sampled_t = torch.empty(B, 1, 1, device=device).uniform_(low, high)
+            valid_history_codes = history_sid.ge(0)
+            history_code_mask = (
+                torch.rand(B, seq_len, n_digit, device=device) < sampled_t
+            ) & valid_history_codes
+            # Extremely small sampled t can otherwise yield no supervision for
+            # short histories. Select one valid coordinate only for such rows.
+            no_mask = ~history_code_mask.reshape(B, -1).any(dim=1)
+            has_history = valid_history_codes.reshape(B, -1).any(dim=1)
+            for row in torch.where(no_mask & has_history)[0].tolist():
+                valid_flat = torch.where(valid_history_codes[row].reshape(-1))[0]
+                picked = valid_flat[torch.randint(valid_flat.numel(), (1,), device=device)]
+                history_code_mask[row].view(-1)[picked] = True
+
         # 1. 将history SID转换为token IDs
         history_tokens = torch.zeros(B, seq_len, n_digit, dtype=torch.long, device=device)
         for d in range(n_digit):
@@ -566,6 +732,15 @@ class DIFF_GRM(AbstractModel):
         
         # 2. 获取token嵌入
         tok_emb = self.embedding(history_tokens)  # [B, seq_len, n_digit, d]
+        if history_code_mask is not None:
+            history_mask_embeddings = self.history_mask_emb_table.weight.view(
+                1, 1, self.n_digit, self.n_embd
+            )
+            tok_emb = torch.where(
+                history_code_mask.unsqueeze(-1),
+                history_mask_embeddings,
+                tok_emb,
+            )
         B, S, _, d = tok_emb.shape
         
         # 3. 重塑并通过MLP压缩：n_digit个SID token → 1个item token
@@ -601,6 +776,34 @@ class DIFF_GRM(AbstractModel):
         if 'history_mask' in batch:
             history_mask = batch['history_mask'].to(device)  # [B, S]，True=有效
             encoder_hidden = encoder_hidden * history_mask.unsqueeze(-1).float()
+
+        base_encoder_hidden = encoder_hidden
+
+        history_denoise_loss = None
+        if history_code_mask is not None and history_code_mask.any():
+            per_sample_history_loss = encoder_hidden.new_zeros(B)
+            for digit in range(self.n_digit):
+                digit_logits = self._compute_digit_logits(
+                    encoder_hidden.reshape(B * seq_len, self.n_embd),
+                    digit=digit,
+                ).reshape(B, seq_len, self.codebook_size)
+                digit_labels = clean_history_sid[:, :, digit].clamp(
+                    min=0, max=self.codebook_size - 1
+                )
+                digit_loss = F.cross_entropy(
+                    digit_logits.transpose(1, 2),
+                    digit_labels,
+                    reduction='none',
+                    label_smoothing=self.config.get('label_smoothing', 0.1),
+                )
+                per_sample_history_loss += (
+                    digit_loss * history_code_mask[:, :, digit].float()
+                ).sum(dim=1)
+            actual_t = history_code_mask.float().mean(dim=(1, 2)).clamp_min(1e-6)
+            valid_count = clean_history_sid.ge(0).float().sum(dim=(1, 2)).clamp_min(1.0)
+            history_denoise_loss = (
+                per_sample_history_loss / actual_t / valid_count
+            ).mean()
         
         if not return_loss:
             # 推理模式，直接返回encoder输出
@@ -615,6 +818,7 @@ class DIFF_GRM(AbstractModel):
         # 确保decoder输入在有效范围内
         decoder_input_ids = torch.clamp(decoder_input_ids, 0, self.codebook_size - 1)
         decoder_labels = torch.clamp(decoder_labels, 0, self.codebook_size - 1)
+        base_decoder_labels = decoder_labels
         
         # ---------- 构造训练视图 ----------
         all_masked_input_ids = []
@@ -873,9 +1077,40 @@ class DIFF_GRM(AbstractModel):
                 total_loss = total_loss / total_weight
             else:
                 total_loss = torch.tensor(0.0, device=device, requires_grad=True)
+
+        token_loss = total_loss
+        path_loss = None
+        if self.path_listwise_enabled and self.training:
+            path_batch_size = min(
+                int(self.path_listwise_cfg.get('batch_size', 16)),
+                base_decoder_labels.shape[0],
+            )
+            selected = torch.randperm(
+                base_decoder_labels.shape[0], device=device
+            )[:path_batch_size]
+            path_targets = base_decoder_labels[selected]
+            path_candidates = self._path_candidates(path_targets)
+            path_scores = self._order_marginal_path_scores(
+                base_encoder_hidden[selected], path_candidates
+            )
+            path_temperature = float(self.path_listwise_cfg.get('temperature', 1.0))
+            path_loss = F.cross_entropy(
+                path_scores / path_temperature,
+                torch.zeros(path_batch_size, device=device, dtype=torch.long),
+            )
+            total_loss = token_loss + float(
+                self.path_listwise_cfg.get('weight', 0.2)
+            ) * path_loss
+        if history_denoise_loss is not None:
+            total_loss = total_loss + float(
+                self.history_denoise_cfg.get('weight', 0.2)
+            ) * history_denoise_loss
         
         output = ModelOutput()
         output.loss = total_loss
+        output.token_loss = token_loss
+        output.path_loss = path_loss
+        output.history_denoise_loss = history_denoise_loss
         output.hidden_states = decoder_hidden
         output.logits = None  # 不返回所有logits，节省内存
         
@@ -1015,7 +1250,14 @@ class DIFF_GRM(AbstractModel):
         
         return output
 
-    def generate(self, batch, n_return_sequences=1, mode="confidence"):
+    def generate(
+        self,
+        batch,
+        n_return_sequences=1,
+        mode="confidence",
+        return_scores=False,
+        encoder_hidden=None,
+    ):
         """
         使用向量化迭代式掩码填充进行推理生成
         
@@ -1028,16 +1270,42 @@ class DIFF_GRM(AbstractModel):
             generated_sequences: [B, top_k_final, n_digit]
         """
         from .beam import fast_beam_search_for_eval
+        from .catalog_decode import (
+            catalog_order_marginal_decode,
+            catalog_uncertainty_decode,
+        )
         
         # 🚀 确保推理时使用eval模式，关闭dropout
         was_training = self.training
         self.eval()
         
         try:
-            # 获取encoder输出
+            # The observed history is identical across reveal orders.  Hybrid
+            # evaluation may therefore pass a precomputed encoder state and
+            # avoid rerunning the same encoder once per proposal order.
             with torch.no_grad():
-                encoder_outputs = self.forward(batch, return_loss=False)
-                encoder_hidden = encoder_outputs.hidden_states
+                if encoder_hidden is None:
+                    encoder_outputs = self.forward(batch, return_loss=False)
+                    encoder_hidden = encoder_outputs.hidden_states
+
+                if mode == "catalog":
+                    if return_scores:
+                        raise ValueError("catalog decoding does not expose path scores")
+                    return catalog_order_marginal_decode(
+                        model=self,
+                        encoder_hidden=encoder_hidden,
+                        tokenizer=self.tokenizer,
+                        n_return_sequences=n_return_sequences,
+                    )
+
+                if mode == "catalog_uncertainty":
+                    return catalog_uncertainty_decode(
+                        model=self,
+                        encoder_hidden=encoder_hidden,
+                        tokenizer=self.tokenizer,
+                        n_return_sequences=n_return_sequences,
+                        return_scores=return_scores,
+                    )
 
                 # 路由：原生4步 / 随机
                 if mode in ("confidence", "random"):
@@ -1048,7 +1316,8 @@ class DIFF_GRM(AbstractModel):
                         max_len=self.n_digit,
                         tokenizer=self.tokenizer,
                         mode=mode,
-                        rand_cfg=self.config.get("random_beam", {})
+                        rand_cfg=self.config.get("random_beam", {}),
+                        return_scores=return_scores,
                     )
                     return generated_sequences
 
@@ -1067,7 +1336,8 @@ class DIFF_GRM(AbstractModel):
                             max_len=self.n_digit,
                             tokenizer=self.tokenizer,
                             mode="confidence",
-                            rand_cfg=self.config.get("random_beam", {})
+                            rand_cfg=self.config.get("random_beam", {}),
+                            return_scores=return_scores,
                         )
                     else:
                         generated_sequences = decode_ablate_confidence(
@@ -1077,6 +1347,8 @@ class DIFF_GRM(AbstractModel):
                             steps=steps,
                             n_return_sequences=n_return_sequences,
                         )
+                        if return_scores:
+                            raise ValueError("ablation decoding does not expose path scores")
                     return generated_sequences
 
                 # 兜底：未知模式，走原4步
@@ -1087,7 +1359,8 @@ class DIFF_GRM(AbstractModel):
                     max_len=self.n_digit,
                     tokenizer=self.tokenizer,
                     mode="confidence",
-                    rand_cfg=self.config.get("random_beam", {})
+                    rand_cfg=self.config.get("random_beam", {}),
+                    return_scores=return_scores,
                 )
                 return generated_sequences
             
@@ -1110,4 +1383,4 @@ class DIFF_GRM(AbstractModel):
                 torch.nn.init.zeros_(module.bias)
             if hasattr(module, "weight") and module.weight is not None:
                 torch.nn.init.ones_(module.weight)
-        # 注意：output_adapter如果是Identity()，不需要初始化 
+        # 注意：output_adapter如果是Identity()，不需要初始化

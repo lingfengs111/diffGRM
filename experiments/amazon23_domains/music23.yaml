@@ -1,0 +1,7 @@
+category: Musical_Instruments
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_music/raw_core5
+expected_protocol:
+  train: 339519
+  val: 57439
+  test: 57439
+  items: 24587

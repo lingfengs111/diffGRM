@@ -1,0 +1,11 @@
+# Opt-in OPQ/PQ centroid regularization. The OPQ rotation remains frozen.
+force_regenerate_opq: true
+opq_regularizer_steps: 300
+opq_regularizer_batch_size: 1024
+opq_regularizer_lr: 0.001
+opq_regularizer_temperature: 0.05
+opq_balance_weight: 0.01
+opq_mi_weight: 0.01
+opq_anchor_weight: 0.01
+opq_regularizer_seed: 2026
+opq_regularizer_device: cuda

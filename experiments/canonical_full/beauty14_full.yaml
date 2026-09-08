@@ -1,0 +1,56 @@
+# Canonical Beauty-2014 protocol: consume CleanGR's exact prepared examples.
+category: Beauty
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon14_beauty/raw_core5
+metadata: sentence
+sent_emb_model: sentence-transformers/sentence-t5-base
+sent_emb_dim: 768
+sent_emb_pca: 256
+normalize_after_pca: true
+sent_emb_batch_size: 512
+
+n_digit: 4
+quantizer_n_digit: 4
+codebook_size: 256
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+collision_repair_digit: auto
+disable_opq: false
+force_regenerate_opq: false
+force_regenerate_codes: false
+opq_use_gpu: false
+faiss_omp_num_threads: 32
+
+# Match the CleanGR Beauty baselines' prepared histories.
+max_history_len: 20
+max_hist_len: 20
+encoder_n_layer: 2
+decoder_n_layer: 4
+n_head: 8
+n_embd: 256
+n_inner: 1024
+dropout: 0.1
+attn_pdrop: 0.1
+resid_pdrop: 0.1
+share_decoder_output_embedding: true
+
+train_batch_size: 256
+eval_batch_size: 32
+lr: 0.003
+weight_decay: 0.0
+warmup_steps: 1000
+epochs: 100
+max_grad_norm: 1.0
+label_smoothing: 0.1
+eval_start_epoch: 20
+eval_interval: 2
+patience: 10
+topk: [5, 10]
+metrics: [ndcg, recall]
+val_metric: weighted_score
+eval_collision_corrected: true
+
+decoder_diagnostics:
+  enabled: true
+  splits: [test]
+  conditional: true
+  catalog: true

@@ -1,0 +1,9 @@
+# Fair quantizer-only control: CleanGR's neural RQ-VAE codes generated from
+# Sentence-T5 metadata, evaluated with the same AR architecture and protocol as
+# OPQ4 and RQ2+OPQ2.  The fourth digit is CleanGR's collision resolver.
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/cache/AmazonReviews2023CleanGR/Video_Games/processed/cleangr_sentence_t5_neural_rqvae_cf.sem_ids
+sid_override_tag: cleangr-sentence-t5-neural-rqvae-cf
+n_digit: 4
+quantizer_n_digit: 4
+codebook_size: 256
+

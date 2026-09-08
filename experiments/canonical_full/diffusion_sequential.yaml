@@ -1,0 +1,18 @@
+masking_strategy: sequential
+sequential_steps: auto
+sequential_paths: 1
+beam_search_modes: [random]
+random_beam:
+  seed: 42
+vectorized_beam_search:
+  top_k_final: 10
+  neg_inf_fp32: -1000000000.0
+  neg_inf_fp16: -65504.0
+  dedup_strategy: simple
+  val: {beam_act: 32, beam_max: 32}
+  test: {beam_act: 128, beam_max: 128}
+  beam_act: 128
+  beam_max: 128
+final_step_beam_expand: true
+path_listwise:
+  enabled: false

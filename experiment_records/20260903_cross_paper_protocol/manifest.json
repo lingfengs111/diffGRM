@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "record_id": "20260903_cross_paper_protocol",
+  "title": "RPG, Latte, DiffGRM, and current-method comparison audit",
+  "date": "2026-09-03",
+  "status": "complete",
+  "datasets": ["Beauty14", "Music23", "Video23"],
+  "tags": ["paper-comparison", "protocol-audit", "collision-evaluation"],
+  "protocol": "Read-only audit of local and published comparison conditions; not a new model result.",
+  "source_paths": [
+    "runs/paper_comparison/THREE_WAY_PROTOCOL_AUDIT_2026-09-03.md",
+    "runs/canonical_full/BEAUTY14_REPRO_AUDIT_2026-09-03.md"
+  ],
+  "git_snapshot": {"commit": "ad7b971c7e52", "branch": "main", "dirty": true}
+}

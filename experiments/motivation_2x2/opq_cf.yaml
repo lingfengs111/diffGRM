@@ -1,0 +1,5 @@
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+# OPQ dimensions are symmetric, so select the globally least-distorting digit.
+collision_repair_digit: auto
+disable_opq: false

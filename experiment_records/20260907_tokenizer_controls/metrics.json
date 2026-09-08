@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "study_id": "20260907_tokenizer_controls",
+  "rows": [
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "OPQ4 drafter / RQ-KMeans3 AR, ESM",
+      "metrics": {"ndcg@5": 0.019321, "recall@5": 0.030009, "ndcg@10": 0.024879, "recall@10": 0.047230, "candidate_recall@72": 0.122212},
+      "notes": "valid result_v2; true dual-view; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "OPQ4 drafter / OPQ4 AR, ESM",
+      "metrics": {"ndcg@5": 0.019138, "recall@5": 0.029381, "ndcg@10": 0.024303, "recall@10": 0.045386, "candidate_recall@72": 0.122212},
+      "notes": "matched tokenizer; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ2+OPQ2 drafter / matched AR, Hungarian",
+      "metrics": {"ndcg@5": 0.019270, "recall@5": 0.029970, "ndcg@10": 0.024290, "recall@10": 0.045582, "candidate_recall@72": 0.124625},
+      "notes": "alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans4 drafter / matched AR, Hungarian",
+      "metrics": {"ndcg@5": 0.018932, "recall@5": 0.029185, "ndcg@10": 0.024229, "recall@10": 0.045582, "candidate_recall@72": 0.125606},
+      "notes": "alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / matched AR, ESM",
+      "metrics": {"ndcg@5": 0.018548, "recall@5": 0.028969, "ndcg@10": 0.024061, "recall@10": 0.046053, "candidate_recall@72": 0.120330},
+      "notes": "alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans4 drafter / matched AR, ESM",
+      "metrics": {"ndcg@5": 0.018424, "recall@5": 0.028538, "ndcg@10": 0.023793, "recall@10": 0.045307, "candidate_recall@72": 0.125998},
+      "notes": "alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / matched AR, Hungarian",
+      "metrics": {"ndcg@5": 0.018239, "recall@5": 0.029067, "ndcg@10": 0.023817, "recall@10": 0.046445, "candidate_recall@72": 0.122134},
+      "notes": "alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans3 PSID-style AR beam-500, ESM",
+      "metrics": {"ndcg@5": 0.018541, "recall@5": 0.028969, "ndcg@10": 0.023633, "recall@10": 0.044778},
+      "notes": "AR generation baseline; no proposal candidate recall"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / OPQ4 AR, ESM",
+      "metrics": {"ndcg@5": 0.018148, "recall@5": 0.028420, "ndcg@10": 0.023525, "recall@10": 0.045190, "candidate_recall@72": 0.120330},
+      "notes": "valid result_v2; reverse dual-view; alpha=0.75"
+    }
+  ]
+}

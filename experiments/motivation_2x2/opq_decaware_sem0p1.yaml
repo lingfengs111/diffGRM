@@ -1,0 +1,6 @@
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+collision_repair_digit: auto
+disable_opq: false
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/runs/motivation_2x2/decoder_aware_assignments/decaware_sem0p1.sem_ids.json
+sid_override_tag: decaware_sem0p1

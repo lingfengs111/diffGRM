@@ -1,0 +1,15 @@
+sid_quantizer: opq_pq
+sid_collision_strategy: hungarian
+collision_repair_digit: auto
+disable_opq: false
+
+# Keep the four collision-free OPQ payload codes and prepend one deterministic
+# behavior route learned only from training transitions.
+n_digit: 5
+quantizer_n_digit: 4
+sid_prefix_strategy: behavior_route
+route_codebook_size: 64
+route_svd_dim: 32
+route_seed: 2026
+force_regenerate_route: false
+

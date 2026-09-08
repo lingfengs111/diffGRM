@@ -1,0 +1,8 @@
+category: Sports_and_Outdoors
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon14_sports/raw_core5_l50
+expected_protocol:
+  train: 189543
+  val: 35598
+  test: 35598
+  items: 18357
+

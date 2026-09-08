@@ -6,17 +6,31 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Logs
+# Runtime logs and generated experiment trees
 logs/
 *.log
-
-# Training outputs / temp
 runs/
-# Custom project directories to ignore
+reports/
+
+# Local datasets, caches, and model artifacts
 ckpt/
+checkpoints/
 data/
 saved/
 cache/
-runs/
-reports/
-scripts/
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.sent_emb
+*.sem_ids
+
+# Local editor/runtime state
+.vscode/
+.idea/
+.pytest_cache/

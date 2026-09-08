@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "study_id": "20260903_objective_ablation_negatives",
+  "rows": [
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "frozen canonical base",
+      "metrics": {"ndcg@10": 0.048584729, "recall@10": 0.091123024, "candidate_recall@72": 0.233585192},
+      "notes": "full historical L50 test; reference for residual objective"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "AR-residual + listwise hard negatives",
+      "metrics": {"ndcg@10": 0.048588717, "recall@10": 0.090985838, "candidate_recall@72": 0.233226399},
+      "notes": "full historical L50 test; not promoted"
+    },
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "Domino causal correction beta=0.1",
+      "metrics": {"ndcg@10": 0.055865, "recall@10": 0.106287, "candidate_recall@72": 0.267301},
+      "notes": "historical L50; rejected versus beta=0 after AR fusion; no nonzero-beta test"
+    },
+    {
+      "dataset": "Video23-medium-16384",
+      "split": "test",
+      "method": "frozen base for boundary-negative diagnostic",
+      "metrics": {"ndcg@10": 0.048029322, "recall@10": 0.090454102, "candidate_recall@72": 0.234130859},
+      "notes": "historical L50; capped subset, not full-test comparable"
+    },
+    {
+      "dataset": "Video23-medium-16384",
+      "split": "test",
+      "method": "boundary-negative residual",
+      "metrics": {"ndcg@10": 0.047756275, "recall@10": 0.090515137, "candidate_recall@72": 0.234741211},
+      "notes": "historical L50; capped subset; lower final NDCG@10"
+    }
+  ]
+}

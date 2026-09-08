@@ -13,6 +13,7 @@ class Evaluator:
         self.tokenizer = tokenizer
         self.metric2func = {
             'recall': self.recall_at_k,
+            'hit': self.hit_at_k,
             'ndcg': self.ndcg_at_k
         }
 
@@ -40,6 +41,10 @@ class Evaluator:
     def recall_at_k(self, pos_index, k):
         return pos_index[:, :k].sum(dim=1).cpu().float()
 
+    def hit_at_k(self, pos_index, k):
+        """Single-target next-item evaluation: Hit@k equals Recall@k."""
+        return pos_index[:, :k].any(dim=1).cpu().float()
+
     def ndcg_at_k(self, pos_index, k):
         # Assume only one ground truth item per example
         ranks = torch.arange(1, pos_index.shape[-1] + 1).to(pos_index.device)
@@ -53,4 +58,6 @@ class Evaluator:
         for metric in self.config['metrics']:
             for k in self.config['topk']:
                 results[f"{metric}@{k}"] = self.metric2func[metric](pos_index, k)
+        for k in self.config['topk']:
+            results.setdefault(f"hit@{k}", self.hit_at_k(pos_index, k))
         return results

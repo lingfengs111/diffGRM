@@ -15,6 +15,10 @@ def parse_args():
     parser.add_argument('--model', type=str, default='RPG', help='Model name')
     parser.add_argument('--dataset', type=str, default='AmazonReviews2014', help='Dataset name')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint path')
+    parser.add_argument(
+        '--config', action='append', default=None,
+        help='Additional YAML config; repeat this flag to merge multiple files in order.'
+    )
     return parser.parse_known_args()
 
 
@@ -26,6 +30,7 @@ if __name__ == '__main__':
         model_name=args.model,
         dataset_name=args.dataset,
         checkpoint_path=args.checkpoint,
-        config_dict=command_line_configs
+        config_dict=command_line_configs,
+        config_file=args.config,
     )
     pipeline.run()

@@ -1,0 +1,26 @@
+# Strict equal-width tokenizer control against science23_rqkmeans3.yaml.
+category: Industrial_and_Scientific
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_science/raw_core5
+splits_dir: splits_l20
+expected_protocol: {train: 259992, val: 50985, test: 50985, items: 25848}
+max_history_len: 20
+max_hist_len: 20
+n_digit: 3
+quantizer_n_digit: 3
+codebook_size: 256
+sid_quantizer: opq_pq
+sid_collision_strategy: none
+sent_emb_model: sentence-transformers/sentence-t5-base
+sent_emb_dim: 768
+sent_emb_pca: 192
+normalize_after_pca: false
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/cache/AmazonReviews2023CleanGR/Industrial_and_Scientific/processed/sentence-t5-base_latte-meta_pca192_OPQ3x256_psid.sem_ids
+sid_override_tag: latte-meta-opq3x256-psid-pure
+sid_prefix_strategy: none
+item_identity_start_digit: 0
+epochs: 180
+eval_start_epoch: 10
+eval_interval: 2
+patience: 18
+topk: [5, 10]
+metrics: [ndcg, recall]

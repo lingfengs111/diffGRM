@@ -1,0 +1,7 @@
+category: Industrial_and_Scientific
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_science/raw_core5
+expected_protocol:
+  train: 259992
+  val: 50985
+  test: 50985
+  items: 25848

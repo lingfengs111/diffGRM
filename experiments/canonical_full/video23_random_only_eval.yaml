@@ -1,0 +1,5 @@
+# Evaluation-only override for the stronger Video23 decoding mode.  It avoids
+# spending half the test pass on the weaker confidence-order decoder.
+beam_search_modes: [random]
+decoder_diagnostics:
+  enabled: false

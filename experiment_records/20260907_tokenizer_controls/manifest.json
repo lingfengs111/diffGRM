@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "record_id": "20260907_tokenizer_controls",
+  "title": "Science23 tokenizer and collision-repair controls",
+  "date": "2026-09-07",
+  "status": "running",
+  "datasets": [
+    "Science23"
+  ],
+  "tags": [
+    "tokenizer",
+    "collision-repair",
+    "dual-view",
+    "l20"
+  ],
+  "protocol": "Full Science23, collision-free item-level test, L20, K=72 unless stated, validation-selected fusion alpha.",
+  "source_paths": [
+    "experiments/tokenizer_controls_20260907/",
+    "runs/tokenizer_controls_20260907/RESULTS_20260907.md",
+    "runs/tokenizer_controls_20260907/**/result.json",
+    "runs/tokenizer_controls_20260907/dual_view/**/result_v2.json"
+  ],
+  "invalid_sources": [
+    {
+      "path": "runs/tokenizer_controls_20260907/dual_view/opq4_to_rqk3/result.json",
+      "reason": "incorrect runtime head temperature"
+    },
+    {
+      "path": "runs/tokenizer_controls_20260907/dual_view/rqk3_to_opq4/result.json",
+      "reason": "incorrect runtime head temperature"
+    }
+  ],
+  "pending": [
+    "Matched OPQ4 + Hungarian training was active when this record snapshot was made; no result.json existed yet."
+  ],
+  "git_snapshot": {
+    "commit": "ad7b971c7e52",
+    "branch": "main",
+    "dirty": true
+  },
+  "files": [
+    {
+      "role": "metrics",
+      "stored_as": "metrics.json",
+      "bytes": 2779,
+      "sha256": "593f47ac5489da3ce38756936682d0bc10bdb4baa2198aecb5993ac755bb2219"
+    },
+    {
+      "role": "summary",
+      "stored_as": "summary.md",
+      "bytes": 985,
+      "sha256": "7d8f55482145b8591709730f2a2e1d82b467de4e9aaf763fbfcf7fd1bf66d254"
+    }
+  ]
+}

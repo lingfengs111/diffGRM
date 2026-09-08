@@ -73,6 +73,16 @@ class Pipeline:
             if checkpoint_path is not None:
                 self.model.load_state_dict(torch.load(checkpoint_path, map_location=self.config['device']))
                 self.log(f'Loaded model checkpoint from {checkpoint_path}')
+            elif self.config.get('init_checkpoint'):
+                init_checkpoint = self.config['init_checkpoint']
+                init_state = torch.load(
+                    init_checkpoint, map_location=self.config['device']
+                )
+                if hasattr(self.model, 'load_init_checkpoint'):
+                    self.model.load_init_checkpoint(init_state)
+                else:
+                    self.model.load_state_dict(init_state)
+                self.log(f'Warm-started model from {init_checkpoint}')
         self.log(self.model)
         self.log(self.model.n_parameters)
 

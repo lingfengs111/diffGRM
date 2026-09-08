@@ -1,0 +1,17 @@
+# Equal-length RQ-OPQ control for canonical Video23.
+# Two residual K-means route digits are followed by two OPQ/PQ digits fitted
+# on the final RQ residual.  Collision repair is restricted to the last OPQ
+# coordinate so the learned RQ hierarchy is never rewritten.
+n_digit: 4
+quantizer_n_digit: 4
+codebook_size: 256
+sid_quantizer: rq_opq
+rq_opq_rq_digits: 2
+rq_opq_opq_digits: 2
+rq_opq_seed: 2026
+rq_opq_niters: 25
+rq_opq_normalize_residual: false
+rq_opq_repair_opq_digit: 1
+sid_collision_strategy: hungarian
+force_regenerate_opq: false
+

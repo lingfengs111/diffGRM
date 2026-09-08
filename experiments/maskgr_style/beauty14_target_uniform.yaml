@@ -1,0 +1,38 @@
+# MaskGR control A: dynamic target corruption only.  Compared with the
+# canonical sequential DiffGRM run, the architecture, collision-free OPQ
+# catalog and data are fixed; only t ~ Uniform(0, 1) and 1/t loss weighting
+# change.
+masking_strategy: random
+mask_prob_random: true
+mask_prob_random_min: 0.0
+mask_prob_random_max: 1.0
+mask_probs: null
+augment_factor: 1
+
+history_denoise:
+  enabled: false
+
+# Select checkpoints with one fixed random-order decoder.  The more expensive
+# multi-order and uncertainty decoders are applied offline to the winner.
+beam_search_modes: [random]
+random_beam:
+  beam_act: 32
+  beam_max: 32
+  seed: 42
+  decode_order: [0, 1, 2, 3]
+vectorized_beam_search:
+  top_k_final: 10
+  neg_inf_fp32: -1000000000.0
+  neg_inf_fp16: -65504.0
+  dedup_strategy: simple
+  val: {beam_act: 32, beam_max: 32}
+  test: {beam_act: 128, beam_max: 128}
+  beam_act: 32
+  beam_max: 32
+final_step_beam_expand: true
+
+path_listwise:
+  enabled: false
+decoder_diagnostics:
+  enabled: false
+

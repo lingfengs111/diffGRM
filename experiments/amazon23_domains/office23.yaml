@@ -1,0 +1,7 @@
+category: Office_Products
+data_dir: /home/lingfengs111/codes/GR/CleanGR/outputs/amazon23_office/raw_core5
+expected_protocol:
+  train: 1130954
+  val: 223308
+  test: 223308
+  items: 77551

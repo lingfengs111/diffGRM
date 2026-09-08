@@ -67,6 +67,10 @@ def get_command_line_args_str():
 def get_file_name(config: dict, suffix: str = ''):
     # 只保留时间和数据集信息，避免文件名过长
     dataset_name = config.get("dataset", "unknown")
+    run_id = config.get("run_id")
+    if run_id:
+        safe_run_id = re.sub(r'[^A-Za-z0-9_.-]+', '_', str(run_id)).strip('._')
+        return f"{dataset_name}_{safe_run_id}{suffix}"
     # 从run_local_time中提取日期时间信息
     time_str = config.get('run_local_time', 'unknown')
     

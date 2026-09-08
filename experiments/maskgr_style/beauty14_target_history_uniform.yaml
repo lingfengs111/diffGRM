@@ -1,0 +1,37 @@
+# MaskGR control B: the same dynamic target objective as control A, plus
+# corruption/reconstruction of semantic codes throughout the observed history.
+masking_strategy: random
+mask_prob_random: true
+mask_prob_random_min: 0.0
+mask_prob_random_max: 1.0
+mask_probs: null
+augment_factor: 1
+
+history_denoise:
+  enabled: true
+  weight: 0.2
+  mask_prob_min: 0.0
+  mask_prob_max: 1.0
+
+beam_search_modes: [random]
+random_beam:
+  beam_act: 32
+  beam_max: 32
+  seed: 42
+  decode_order: [0, 1, 2, 3]
+vectorized_beam_search:
+  top_k_final: 10
+  neg_inf_fp32: -1000000000.0
+  neg_inf_fp16: -65504.0
+  dedup_strategy: simple
+  val: {beam_act: 32, beam_max: 32}
+  test: {beam_act: 128, beam_max: 128}
+  beam_act: 32
+  beam_max: 32
+final_step_beam_expand: true
+
+path_listwise:
+  enabled: false
+decoder_diagnostics:
+  enabled: false
+

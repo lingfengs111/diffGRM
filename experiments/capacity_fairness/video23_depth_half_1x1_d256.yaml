@@ -1,0 +1,10 @@
+# Full-width, half-depth capacity control on the canonical Video23 split.
+# The AR verifier uses one encoder and one decoder block.  The one-pass
+# encoder-only drafter receives its two-block depth from the launcher so that
+# both components preserve d=256 while reducing their repeated transformer
+# blocks.
+n_embd: 256
+n_inner: 512
+encoder_n_layer: 1
+decoder_n_layer: 1
+n_head: 4

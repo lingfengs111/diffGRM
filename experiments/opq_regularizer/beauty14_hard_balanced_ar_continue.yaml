@@ -1,0 +1,17 @@
+# Equal-budget continuation of the conservative regularized OPQ AR model.
+# Match the canonical standalone-AR continuation control exactly; only the
+# SID catalog and warm-start checkpoint differ.
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/cache/AmazonReviews2014CleanGR/Beauty/processed/sentence-t5-base_pca256_OPQ4,IVF1,PQ4x8_cfhungarian-auto_reg-s250-bal0p02-mi0p01-hard0p02-a0p5.sem_ids
+sid_override_tag: opqreg-hard-balanced-v1
+force_regenerate_opq: false
+
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2014CleanGR_beauty14_full_opq_reg_hard_balanced_ar_v1/pytorch_model.bin
+lr: 0.0003
+warmup_steps: 100
+epochs: 20
+eval_start_epoch: 2
+eval_interval: 2
+patience: 4
+label_smoothing: 0.1
+train_batch_size: 192
+eval_batch_size: 32

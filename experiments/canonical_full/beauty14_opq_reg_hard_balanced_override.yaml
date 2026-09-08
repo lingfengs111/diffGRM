@@ -1,0 +1,8 @@
+# Downstream control for the conservative regularized OPQ catalog.
+sid_override_path: /home/lingfengs111/codes/GR_variant/DiffGRM/cache/AmazonReviews2014CleanGR/Beauty/processed/sentence-t5-base_pca256_OPQ4,IVF1,PQ4x8_cfhungarian-auto_reg-s250-bal0p02-mi0p01-hard0p02-a0p5.sem_ids
+sid_override_tag: opqreg-hard-balanced-v1
+force_regenerate_opq: false
+epochs: 60
+eval_start_epoch: 10
+eval_interval: 2
+patience: 8

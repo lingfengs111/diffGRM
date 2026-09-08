@@ -1,0 +1,9 @@
+# Conservative continuation after the interrupted full Video23 RQ2+OPQ2 diffusion run.
+init_checkpoint: /home/lingfengs111/codes/GR_variant/DiffGRM/saved/AmazonReviews2023CleanGR_video23_full_rq2opq2_cf_diff_guided_v1/pytorch_model.bin
+lr: 0.0003
+warmup_steps: 100
+epochs: 20
+eval_start_epoch: 2
+eval_interval: 2
+patience: 4
+

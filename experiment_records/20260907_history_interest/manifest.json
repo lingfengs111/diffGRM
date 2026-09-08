@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "record_id": "20260907_history_interest",
+  "title": "Science23 and Video23 history-interest suite",
+  "date": "2026-09-07",
+  "status": "complete",
+  "datasets": [
+    "Science23",
+    "Video23"
+  ],
+  "tags": [
+    "history-reader",
+    "multiple-interests",
+    "checkpoint-selection",
+    "l20"
+  ],
+  "protocol": "Full collision-free item-level test, OPQ4/ESM, L20, K=72, seed 2026, independently trained frozen AR, validation-selected alpha=0.75.",
+  "source_paths": [
+    "experiments/history_interest_20260907/README.md",
+    "runs/history_interest_20260907/v1/FINAL_FINDINGS.md",
+    "runs/history_interest_20260907/v1/test_analysis.json",
+    "runs/history_interest_20260907/v1/test/{science23,video23}/{pooled,mlp,interest2}/result.json",
+    "runs/history_interest_20260907/v1/candidate_test/{science23,video23}/pooled/result.json"
+  ],
+  "git_snapshot": {
+    "commit": "ad7b971c7e52",
+    "branch": "main",
+    "dirty": true
+  },
+  "files": [
+    {
+      "role": "metrics",
+      "stored_as": "metrics.json",
+      "bytes": 3033,
+      "sha256": "4c3065b00a8539e4970e1e95ff387978bb136e0cc99ef40b033d943494c5d1b3"
+    },
+    {
+      "role": "summary",
+      "stored_as": "summary.md",
+      "bytes": 1104,
+      "sha256": "b758a2eb7e06e7ffe40e972db43341102364802cac049d1ae32e62c4869c65d0"
+    }
+  ],
+  "validity": "All compared target SID arrays match; four aggregate metrics were reconstructed from saved ranks within 8.1e-10. Single training seed; paired bootstrap conditions on that seed."
+}
