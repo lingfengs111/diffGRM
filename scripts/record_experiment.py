@@ -33,6 +33,7 @@ BLOCKED_SUFFIXES = {
     ".sent_emb",
 }
 RECORD_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+MACHINE_ID_RE = RECORD_ID_RE
 STATUSES = ("planned", "running", "complete", "failed", "invalid")
 
 
@@ -148,6 +149,13 @@ def checkpoint_reference(raw: str, hash_checkpoint: bool) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--record-id", required=True)
+    parser.add_argument(
+        "--machine-id",
+        help=(
+            "producer directory below experiment_records/incoming; defaults "
+            "to git config diffgrm.machine, then the short hostname"
+        ),
+    )
     parser.add_argument("--title", required=True)
     parser.add_argument("--status", required=True, choices=STATUSES)
     parser.add_argument("--dataset", action="append", default=[])
@@ -198,15 +206,34 @@ def main() -> int:
     if args.max_artifact_bytes <= 0:
         parser.error("--max-artifact-bytes must be positive")
 
+    machine_id = args.machine_id or git_text("config", "--get", "diffgrm.machine")
+    if not machine_id:
+        machine_id = socket.gethostname().split(".", 1)[0]
+    if not MACHINE_ID_RE.fullmatch(machine_id):
+        parser.error(
+            "machine id may contain only letters, numbers, dot, dash, underscore; "
+            "set it with git config diffgrm.machine NAME"
+        )
+
     records_root = Path(args.records_root).expanduser()
     if not records_root.is_absolute():
         records_root = REPO_ROOT / records_root
     records_root = records_root.resolve()
-    destination = records_root / args.record_id
-    if destination.exists():
-        parser.error(f"record already exists and is immutable: {destination}")
+    for manifest_path in records_root.rglob("manifest.json"):
+        try:
+            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            parser.error(f"cannot inspect existing record {manifest_path}: {error}")
+        if existing.get("record_id") == args.record_id:
+            parser.error(
+                f"record_id already exists and is immutable: {manifest_path.parent}"
+            )
 
-    staging = records_root / f".{args.record_id}.tmp-{os.getpid()}"
+    producer_root = records_root / "incoming" / machine_id
+    producer_root.mkdir(parents=True, exist_ok=True)
+    destination = producer_root / args.record_id
+
+    staging = producer_root / f".{args.record_id}.tmp-{os.getpid()}"
     files: list[dict[str, Any]] = []
     try:
         staging.mkdir(parents=True, exist_ok=False)
@@ -268,6 +295,7 @@ def main() -> int:
             "protocol": args.protocol,
             "command": args.command,
             "recorded_by": {
+                "machine_id": machine_id,
                 "host": socket.gethostname(),
                 "user": os.environ.get("USER") or getpass.getuser(),
             },

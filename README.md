@@ -26,7 +26,8 @@ as legacy reproduction and literature-comparison controls.
   canonical results, and diagnostic findings.
 - [Experiment result index](experiment_records/INDEX.md): lightweight,
   Git-synchronized numerical records.
-- [Two-machine synchronization](docs/EXPERIMENT_SYNC.md): what belongs in Git
+- [Multi-machine synchronization](docs/EXPERIMENT_SYNC.md): directory
+  ownership, archive lifecycle, and what belongs in Git
   and how to publish a new experiment without committing checkpoints.
 - [Amazon23 data/configuration guide](experiments/amazon23_domains/README.md):
   prepared split statistics, audits, and baseline launch commands.
@@ -138,18 +139,20 @@ machine. Training artifacts go under ignored `runs/` and `saved/` directories.
 
 ## Recording a new result
 
-Routine experiments do not need a new prose summary. Record their metrics and
-provenance, rebuild the common index, then commit only the new/changed files:
+Routine experiments do not need a new prose summary. Configure this clone's
+machine ID once, then record metrics and provenance into its machine-owned
+incoming directory:
 
 ```bash
+git config --local diffgrm.machine MACHINE_ID
 python scripts/record_experiment.py --help
-python scripts/build_results_index.py
 git status --short
 ```
 
 A `summary.md` is useful only when a suite closes, a validity issue is found,
-or the research conclusion changes. Checkpoints and large rank arrays remain
-local and are referenced rather than copied.
+or the research conclusion changes. The integration step moves terminal
+records into the shared archive and rebuilds the index. Checkpoints and large
+rank arrays remain local and are referenced rather than copied.
 
 ## Legacy Amazon14 scope
 

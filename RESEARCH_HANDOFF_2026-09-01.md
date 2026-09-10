@@ -1,9 +1,9 @@
 # CleanGR / structured drafter + AR research handoff (2026-09-01)
 
-> **Update (2026-09-07):** this remains the detailed architecture handoff, but
+> **Update (2026-09-10):** this remains the detailed architecture handoff, but
 > its result snapshot predates the L20 Science23/Video23 history-interest and
 > tokenizer-control suites. Read
-> [`docs/CURRENT_STATUS_2026-09-07.md`](docs/CURRENT_STATUS_2026-09-07.md) for
+> [`docs/CURRENT_STATUS_2026-09-10.md`](docs/CURRENT_STATUS_2026-09-10.md) for
 > the current result-level amendments. In particular, do not mix the canonical
 > historical Video23 L50 table below with the newer Video23 L20 suite.
 

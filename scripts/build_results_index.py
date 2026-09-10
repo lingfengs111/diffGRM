@@ -36,22 +36,60 @@ def metric_text(metrics: dict[str, Any], key: str) -> str:
 
 def load_records(root: Path) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for metrics_path in sorted(root.glob("*/metrics.json")):
-        record_dir = metrics_path.parent
-        manifest_path = record_dir / "manifest.json"
-        if not manifest_path.is_file():
-            raise ValueError(f"missing manifest: {manifest_path}")
-        metrics_payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+    manifests: dict[Path, dict[str, Any]] = {}
+    seen_record_ids: dict[str, Path] = {}
+    for manifest_path in sorted(root.rglob("manifest.json")):
+        relative_parts = manifest_path.relative_to(root).parts
+        if any(part.startswith(".") for part in relative_parts):
+            continue
+        record_dir = manifest_path.parent
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if metrics_payload.get("schema_version") != 1:
-            raise ValueError(f"unsupported metrics schema: {metrics_path}")
         if manifest.get("schema_version") != 1:
             raise ValueError(f"unsupported manifest schema: {manifest_path}")
         record_id = manifest.get("record_id")
         if record_id != record_dir.name:
             raise ValueError(f"manifest record_id does not match directory: {record_dir}")
+        relative_record = record_dir.relative_to(root)
+        parts = relative_record.parts
+        if not (
+            (len(parts) == 2 and parts[0] == "archive")
+            or (len(parts) == 3 and parts[0] == "incoming")
+        ):
+            raise ValueError(
+                f"record must be under archive/<id> or incoming/<machine>/<id>: "
+                f"{record_dir}"
+            )
+        previous = seen_record_ids.get(record_id)
+        if previous is not None:
+            raise ValueError(
+                f"duplicate record_id {record_id!r}: {previous} and {record_dir}"
+            )
+        seen_record_ids[record_id] = record_dir
+        manifests[record_dir] = manifest
+
+    for metrics_path in sorted(root.rglob("metrics.json")):
+        relative_parts = metrics_path.relative_to(root).parts
+        if any(part.startswith(".") for part in relative_parts):
+            continue
+        record_dir = metrics_path.parent
+        manifest_path = record_dir / "manifest.json"
+        manifest = manifests.get(record_dir)
+        if manifest is None:
+            raise ValueError(f"missing manifest: {manifest_path}")
+        metrics_payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+        if metrics_payload.get("schema_version") != 1:
+            raise ValueError(f"unsupported metrics schema: {metrics_path}")
+        record_id = manifest.get("record_id")
         if metrics_payload.get("study_id") != record_id:
             raise ValueError(f"metrics study_id does not match manifest: {metrics_path}")
+        relative_record = record_dir.relative_to(root)
+        parts = relative_record.parts
+        if parts and parts[0] == "archive":
+            location = "archive"
+        elif len(parts) >= 3 and parts[0] == "incoming":
+            location = f"incoming/{parts[1]}"
+        else:
+            location = "legacy-root"
         rows = metrics_payload.get("rows")
         if not isinstance(rows, list):
             raise ValueError(f"rows must be a list: {metrics_path}")
@@ -68,6 +106,8 @@ def load_records(root: Path) -> list[dict[str, Any]]:
                     "title": manifest.get("title", record_id),
                     "date": manifest.get("date", manifest.get("created_at", "")[:10]),
                     "status": manifest.get("status", "unknown"),
+                    "location": location,
+                    "record_path": relative_record.as_posix(),
                     **row,
                 }
             )
@@ -76,7 +116,10 @@ def load_records(root: Path) -> list[dict[str, Any]]:
 
 def render(records: list[dict[str, Any]]) -> str:
     metric_headers = [label for _, label in COMMON_METRICS]
-    header = ["Study", "Date", "Status", "Dataset", "Split", "Method", *metric_headers, "Notes"]
+    header = [
+        "Study", "Date", "Status", "Location", "Dataset", "Split", "Method",
+        *metric_headers, "Notes",
+    ]
     lines = [
         "# Experiment result index",
         "",
@@ -84,7 +127,7 @@ def render(records: list[dict[str, Any]]) -> str:
         "Rows are comparable only when their protocol notes agree.",
         "",
         "| " + " | ".join(header) + " |",
-        "|" + "|".join(["---"] * 6 + ["---:"] * len(COMMON_METRICS) + ["---"]) + "|",
+        "|" + "|".join(["---"] * 7 + ["---:"] * len(COMMON_METRICS) + ["---"]) + "|",
     ]
     order = sorted(
         records,
@@ -99,16 +142,15 @@ def render(records: list[dict[str, Any]]) -> str:
         metrics = row["metrics"]
         if not isinstance(metrics, dict):
             raise ValueError(f"metrics must be an object in {row['record_id']}")
-        record_target = (
-            f"{compact(row['record_id'])}/summary.md"
-            if row["has_summary"]
-            else f"{compact(row['record_id'])}/manifest.json"
+        record_target = f"{compact(row['record_path'])}/" + (
+            "summary.md" if row["has_summary"] else "manifest.json"
         )
         study = f"[{compact(row['record_id'])}]({record_target})"
         cells = [
             study,
             compact(row["date"]),
             compact(row["status"]),
+            compact(row["location"]),
             compact(row["dataset"]),
             compact(row["split"]),
             compact(row["method"]),
