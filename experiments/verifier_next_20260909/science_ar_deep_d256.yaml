@@ -1,0 +1,28 @@
+# Capacity reallocation: pair the already-trained compact d176 drafter with a
+# deeper verifier while keeping total parameters close to the standard
+# d256(2+2) drafter + d256(2+2) AR system.
+n_embd: 256
+n_inner: 512
+n_head: 4
+encoder_n_layer: 2
+decoder_n_layer: 4
+
+epochs: 180
+eval_start_epoch: 10
+eval_interval: 2
+patience: 20
+
+use_causal_mask: true
+teacher_forcing: true
+constrained_beam: true
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [32, 32, 32, 32]
+    beam_search_num: [32, 32, 32, 32]
+  test:
+    pre_cut_num: [128, 128, 128, 128]
+    beam_search_num: [128, 128, 128, 128]

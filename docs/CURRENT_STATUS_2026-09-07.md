@@ -1,5 +1,8 @@
 # Current research status (2026-09-07)
 
+> Superseded by `docs/CURRENT_STATUS_2026-09-10.md`. This file is retained as
+> the first GitHub snapshot's historical status.
+
 This is the short current entry point. The detailed architectural handoff is
 `RESEARCH_HANDOFF_2026-09-01.md`; the older
 `runs/canonical_full/progress_summary_2026-08-23.md` is historical and predates

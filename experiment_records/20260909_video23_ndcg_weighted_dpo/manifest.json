@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "bytes": 12936747,
+      "exists": true,
+      "path": "saved/AmazonReviews2023CleanGR_video23_opq4_pure_ar_l20_v1/pytorch_model.bin"
+    },
+    {
+      "bytes": 12941017,
+      "exists": true,
+      "path": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2026/best_ar.pt"
+    },
+    {
+      "bytes": 12941017,
+      "exists": true,
+      "path": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2027/best_ar.pt"
+    },
+    {
+      "bytes": 12941017,
+      "exists": true,
+      "path": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2028/best_ar.pt"
+    },
+    {
+      "bytes": 12941017,
+      "exists": true,
+      "path": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2029/best_ar.pt"
+    }
+  ],
+  "command": null,
+  "created_at": "2026-09-10T13:59:25.513918+00:00",
+  "datasets": [
+    "Video23"
+  ],
+  "files": [
+    {
+      "bytes": 1598,
+      "role": "summary",
+      "sha256": "e7ee8840185c071478a64695af22e51c1f12fd9fce5e58b524118d7910c1d07a",
+      "source": "_snapshot_record_inputs/objectives_summary.md",
+      "stored_as": "summary.md"
+    },
+    {
+      "bytes": 4178,
+      "role": "metrics",
+      "sha256": "fc0424038ae80d3c18bac0b874048f4dc904d4469cbfea472304601335586e0d",
+      "source": "_snapshot_record_inputs/objectives_metrics.json",
+      "stored_as": "metrics.json"
+    },
+    {
+      "bytes": 3217,
+      "role": "artifact",
+      "sha256": "c69c956dc277bba231d1c5b39cdac64f1f8500bb80988a44f3797f3a559d39cd",
+      "source": "experiments/verifier_objectives_20260909/PLAN.md",
+      "stored_as": "artifacts/plan.md"
+    },
+    {
+      "bytes": 28869,
+      "role": "artifact",
+      "sha256": "27cc77a3857ee0388b295fca4272fe9d0b0495cb652be143a6e4becff95a0b43",
+      "source": "runs/verifier_objectives_20260909/full/apao_all/result.json",
+      "stored_as": "artifacts/pilot_apao_all.json"
+    },
+    {
+      "bytes": 34210,
+      "role": "artifact",
+      "sha256": "91458d860e6e313e2c4608bc95aab9aac43023eca3c3a02da07fa88d9450a9a1",
+      "source": "runs/verifier_objectives_20260909/full/apao_support/result.json",
+      "stored_as": "artifacts/pilot_apao_support.json"
+    },
+    {
+      "bytes": 38625,
+      "role": "artifact",
+      "sha256": "28f6aaa0242d5d983df571ce5b179aecc933cdd182834de436eacd90b0a65931",
+      "source": "runs/verifier_objectives_20260909/full/ar_hard_support/result.json",
+      "stored_as": "artifacts/pilot_ar_hard_support.json"
+    },
+    {
+      "bytes": 43943,
+      "role": "artifact",
+      "sha256": "36233eb931d10a15325cf51b881c06b95403b5655bd0388bc1fd75f48016bc4a",
+      "source": "runs/verifier_objectives_20260909/full/lambda_dpo_support/result.json",
+      "stored_as": "artifacts/pilot_ndcg_dpo.json"
+    },
+    {
+      "bytes": 75022,
+      "role": "artifact",
+      "sha256": "911e8e673cd7d6763df3069bb445ce85b5883252146819350e4365f1b5344f16",
+      "source": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2026/result.json",
+      "stored_as": "artifacts/seed2026.json"
+    },
+    {
+      "bytes": 75034,
+      "role": "artifact",
+      "sha256": "950334a3dae8d0312d371daf577e64c520b814ff95c484c5f5f79db098450cb3",
+      "source": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2027/result.json",
+      "stored_as": "artifacts/seed2027.json"
+    },
+    {
+      "bytes": 75032,
+      "role": "artifact",
+      "sha256": "6372b319a4bbc2feb17eff5bec3646d2280fb1fb579d9cf5272b6390ed5559f2",
+      "source": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2028/result.json",
+      "stored_as": "artifacts/seed2028.json"
+    },
+    {
+      "bytes": 75024,
+      "role": "artifact",
+      "sha256": "5f676de7d5a557c08b282ac6562064dfacbcb8f4acabd597c96f79a69d094ba8",
+      "source": "runs/verifier_objectives_20260909/lambda_dpo_repeats_e12/seed_2029/result.json",
+      "stored_as": "artifacts/seed2029.json"
+    }
+  ],
+  "git_snapshot": {
+    "branch": "main",
+    "commit": "6051fad300bbd7a5bbb3764bfb7a2c0046a7a811",
+    "dirty": true
+  },
+  "protocol": "Full Video23 L20; K=72; frozen drafter; validation-selected checkpoint/alpha; 4-seed fixed-hyperparameter follow-up.",
+  "record_id": "20260909_video23_ndcg_weighted_dpo",
+  "recorded_by": {
+    "host": "csce-caver-s1.engr.tamu.edu",
+    "user": "lingfengs111"
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "tags": [
+    "dpo",
+    "multi-seed",
+    "ranking-loss",
+    "verifier"
+  ],
+  "title": "Video23 NDCG-weighted DPO verifier adaptation"
+}

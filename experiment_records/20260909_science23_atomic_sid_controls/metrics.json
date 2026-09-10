@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "study_id": "20260909_science23_atomic_sid_controls",
+  "rows": [
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched atomic item table, K72",
+      "metrics": {"ndcg@5": 0.017334710362145303, "recall@5": 0.02700794351279788, "ndcg@10": 0.022729726280548344, "recall@10": 0.04377758164165931, "candidate_recall@72": 0.12799843091105226, "candidate_mrr@72": 0.01872503552489027, "milliseconds_per_example": 0.6128968851666576},
+      "notes": "L20; frozen matched encoder; 6.815M trainable drafter params; alpha=0.50"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched OPQ unary, K72",
+      "metrics": {"ndcg@5": 0.016108844395278658, "recall@5": 0.025321172893988428, "ndcg@10": 0.020308305010253616, "recall@10": 0.038364224771991765, "candidate_recall@72": 0.0741590663920761, "candidate_mrr@72": 0.013049720526121522, "milliseconds_per_example": 0.641792970720006},
+      "notes": "L20; frozen matched encoder; 0.723M trainable drafter params; alpha=0.90"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched OPQ pairwise, K72",
+      "metrics": {"ndcg@5": 0.016932485456547106, "recall@5": 0.026027262920466802, "ndcg@10": 0.022004660342947763, "recall@10": 0.04179660684515053, "candidate_recall@72": 0.11687751299401784, "candidate_mrr@72": 0.017816298469777603, "milliseconds_per_example": 0.7792014159608149},
+      "notes": "L20; frozen matched encoder; 0.887M trainable drafter params; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "SID-free atomic retriever + ranker, K72",
+      "metrics": {"ndcg@5": 0.014151364778834044, "recall@5": 0.02241835834068844, "ndcg@10": 0.018290397687625613, "recall@10": 0.035343728547612044, "candidate_recall@72": 0.11493576542120232, "candidate_mrr@72": 0.015976004543346793, "milliseconds_per_example": 0.025497175990765068},
+      "notes": "L20; no quantizer, SID table, SID decoder, or AR path verifier; alpha=0.25"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched atomic item table, K128",
+      "metrics": {"ndcg@5": 0.017317963886275014, "recall@5": 0.026949102677258016, "ndcg@10": 0.022739699608299725, "recall@10": 0.043797195253505936, "candidate_recall@128": 0.1685986074335589, "candidate_mrr@128": 0.019149351154226724, "milliseconds_per_example": 0.8035760909138815},
+      "notes": "L20; frozen matched encoder; alpha=0.50"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched OPQ unary, K128",
+      "metrics": {"ndcg@5": 0.016319376593818265, "recall@5": 0.02563499068353437, "ndcg@10": 0.020868448301239365, "recall@10": 0.03975679121310189, "candidate_recall@128": 0.10048053349024223, "candidate_mrr@128": 0.013322372969345532, "milliseconds_per_example": 0.7931359592856958},
+      "notes": "L20; frozen matched encoder; alpha=0.90"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "matched OPQ pairwise, K128",
+      "metrics": {"ndcg@5": 0.01692875518078218, "recall@5": 0.02608610375600667, "ndcg@10": 0.021982726062806643, "recall@10": 0.04181622045699716, "candidate_recall@128": 0.15496714720015692, "candidate_mrr@128": 0.018212035380200105, "milliseconds_per_example": 0.8503399905645915},
+      "notes": "L20; frozen matched encoder; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "SID-free atomic retriever + ranker, K128",
+      "metrics": {"ndcg@5": 0.014207532319459563, "recall@5": 0.022516426399921546, "ndcg@10": 0.018301546405878465, "recall@10": 0.03528488771207218, "candidate_recall@128": 0.1563008728057272, "candidate_mrr@128": 0.01640535011592362, "milliseconds_per_example": 0.03026321139802205},
+      "notes": "L20; no quantizer, SID table, SID decoder, or AR path verifier; alpha=0.25"
+    }
+  ]
+}

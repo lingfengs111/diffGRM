@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "study_id": "20260908_efficiency_capacity_dual_view",
+  "rows": [
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "sampled-catalog CE, 256 negatives",
+      "metrics": {"ndcg@5": 0.018924522934163846, "recall@5": 0.02940080415808571, "ndcg@10": 0.023849811236671552, "recall@10": 0.04471903501029715, "candidate_recall@72": 0.12476218495635971, "milliseconds_per_example": 1.3585442053153198},
+      "notes": "L20; full-catalog validation/test; importance-corrected sampled denominator; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "sampled-catalog CE, 1024 negatives",
+      "metrics": {"ndcg@5": 0.018649236843423934, "recall@5": 0.029086986368539767, "ndcg@10": 0.023884679168839774, "recall@10": 0.045425125036775524, "candidate_recall@72": 0.12305580072570364, "milliseconds_per_example": 1.3815682533506632},
+      "notes": "L20; full-catalog validation/test; importance-corrected sampled denominator; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "sampled-catalog CE, 4096 negatives",
+      "metrics": {"ndcg@5": 0.018502657722933476, "recall@5": 0.028577032460527608, "ndcg@10": 0.023823422230352685, "recall@10": 0.04507208002353633, "candidate_recall@72": 0.12533097969991175, "milliseconds_per_example": 1.327521563167401},
+      "notes": "L20; full-catalog validation/test; importance-corrected sampled denominator; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "compact capacity d128",
+      "metrics": {"ndcg@5": 0.017251683231357312, "recall@5": 0.02714523879572423, "ndcg@10": 0.022443762150677768, "recall@10": 0.04336569579288026, "candidate_recall@72": 0.12425223104834755, "milliseconds_per_example": 1.1043099309206799},
+      "notes": "L20; compact drafter and AR; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "depth-only capacity d256",
+      "metrics": {"ndcg@5": 0.017691168102830418, "recall@5": 0.027419829361576935, "ndcg@10": 0.02334132073579541, "recall@10": 0.04501323918799647, "candidate_recall@72": 0.12409532215357458, "milliseconds_per_example": 1.0842976986956754},
+      "notes": "L20; reduced-depth capacity arm; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "width-only capacity d176",
+      "metrics": {"ndcg@5": 0.018602993596566943, "recall@5": 0.028930077473766795, "ndcg@10": 0.02389295825049189, "recall@10": 0.0454055114249289, "candidate_recall@72": 0.12517407080513876, "milliseconds_per_example": 1.261639717390555},
+      "notes": "L20; reduced-width capacity arm; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "OPQ4 drafter / RQ-KMeans3 AR",
+      "metrics": {"ndcg@5": 0.03806354660621881, "recall@5": 0.058863257423861885, "ndcg@10": 0.048729010932550845, "recall@10": 0.09212553555222558, "candidate_recall@72": 0.2329836854435322, "milliseconds_per_example": 0.9990774395535328},
+      "notes": "L20; ESM collision-free catalogs; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / matched AR",
+      "metrics": {"ndcg@5": 0.03797885321936272, "recall@5": 0.05837783077604947, "ndcg@10": 0.04859275841590424, "recall@10": 0.09141850108693358, "candidate_recall@72": 0.2291741415335261, "milliseconds_per_example": 0.8873584531679263},
+      "notes": "L20; ESM collision-free catalogs; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / OPQ4 AR",
+      "metrics": {"ndcg@5": 0.03793749012066693, "recall@5": 0.057924062387877, "ndcg@10": 0.048476923798596944, "recall@10": 0.09076423038770816, "candidate_recall@72": 0.2291741415335261, "milliseconds_per_example": 0.9853433088037268},
+      "notes": "L20; ESM collision-free catalogs; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "OPQ4 drafter / RQ-KMeans3 AR",
+      "metrics": {"ndcg@5": 0.025439831113854325, "recall@5": 0.03917199115583488, "ndcg@10": 0.03210996744107186, "recall@10": 0.059924441581503854, "candidate_recall@72": 0.16466164104528283, "milliseconds_per_example": 1.0134696515420394},
+      "notes": "L20; RQ view built from exact OPQ PCA input; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / matched AR",
+      "metrics": {"ndcg@5": 0.02521005374456457, "recall@5": 0.03934608889430526, "ndcg@10": 0.032318860004472004, "recall@10": 0.061473911453890216, "candidate_recall@72": 0.16227650202823865, "milliseconds_per_example": 0.9731391412284875},
+      "notes": "L20; RQ view built from exact OPQ PCA input; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Music23",
+      "split": "test",
+      "method": "RQ-KMeans3 drafter / OPQ4 AR",
+      "metrics": {"ndcg@5": 0.025467570922935043, "recall@5": 0.039241630251223035, "ndcg@10": 0.03231960033475507, "recall@10": 0.06051637389230314, "candidate_recall@72": 0.16227650202823865, "milliseconds_per_example": 0.9957190543179614},
+      "notes": "L20; RQ view built from exact OPQ PCA input; seed 2026; alpha=0.75"
+    }
+  ]
+}

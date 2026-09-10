@@ -20,7 +20,7 @@ as legacy reproduction and literature-comparison controls.
 
 ## Start here
 
-- [Current research status](docs/CURRENT_STATUS_2026-09-07.md): the current
+- [Current research status](docs/CURRENT_STATUS_2026-09-10.md): the current
   method, latest conclusions, and protocol distinctions.
 - [Research handoff](RESEARCH_HANDOFF_2026-09-01.md): architecture, code map,
   canonical results, and diagnostic findings.
@@ -57,15 +57,18 @@ orientation numbers rather than a final multi-seed paper table.
 
 | Dataset/protocol | Method | NDCG@10 | Recall@10 |
 |---|---|---:|---:|
+| Video23 L20 | NDCG-weighted DPO, four-seed mean | 0.048258 | 0.090820 |
 | Video23 L20 | pooled one-pass pairwise + AR, fused-checkpoint control | 0.048461 | 0.091281 |
 | Video23 L20 | local Latte, beam 500 | 0.051082 | 0.095407 |
-| Music23 L20 | random one-pass pairwise + AR | **0.032250** | **0.059855** |
+| Music23 L20 | RQ-KMeans3 drafter + matched AR | 0.032319 | **0.061474** |
+| Music23 L20 | RQ-KMeans3 drafter + OPQ4 AR | **0.032320** | 0.060516 |
 | Science23 L20 | OPQ4 drafter + RQ-KMeans3 AR dual view | **0.024879** | **0.047230** |
 | Video23 L50, historical | DiffGRM-init one-pass pairwise + AR | 0.048585 | 0.091123 |
 
-The result index records additional baselines, negative results, tokenizer
-controls, and protocol notes. In particular, the September 7 multiple-interest
-extension did not demonstrate a stable improvement.
+The NDCG-weighted DPO row improves its fixed candidate-selected baseline in all
+four seeds, but it has not yet been applied to the stronger fused-checkpoint
+drafter control. The result index records the individual seeds, additional
+baselines, negative results, tokenizer controls, and protocol notes.
 
 ## Environment
 
@@ -122,6 +125,12 @@ Replace `video23.yaml` with `music23.yaml` or `science23.yaml` as needed.
   repair, and dual-view controls.
 - `experiments/history_interest_20260907/`: completed Science23/Video23 L20
   history-reader and multiple-interest suite.
+- `experiments/verifier_objectives_20260909/`: rank-aware AR objectives and the
+  four-seed NDCG-weighted DPO follow-up.
+- `experiments/atomic_sid_controls_20260909/`: matched atomic-table, OPQ, and
+  completely SID-free controls.
+- `experiments/verifier_next_20260909/`: proposal-aware adaptation, generation
+  union, and verifier-capacity controls.
 
 Several historical launchers contain absolute repository, Python, checkpoint,
 or dataset paths. Review these variables before running them on another

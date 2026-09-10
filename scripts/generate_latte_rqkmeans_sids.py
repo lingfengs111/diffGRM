@@ -49,6 +49,15 @@ def arguments() -> argparse.Namespace:
     parser.add_argument("--embedding-dim", type=int, default=768)
     parser.add_argument("--pca-dim", type=int, default=192)
     parser.add_argument(
+        "--pretransformed-input",
+        action="store_true",
+        help=(
+            "Treat --embedding-path as the already PCA-transformed item view. "
+            "This is useful for constructing a second quantizer over exactly "
+            "the same cached representation as an existing OPQ tokenizer."
+        ),
+    )
+    parser.add_argument(
         "--quantizer", choices=("rqkmeans", "opq", "rq2opq2"), default="rqkmeans"
     )
     parser.add_argument("--n-codebooks", type=int, default=3)
@@ -361,8 +370,21 @@ def main() -> None:
     print(f"items={len(items)} training_items={int(mask.sum())}", flush=True)
 
     # sklearn's default full PCA path and whitening match Latte's released code.
-    print(f"fitting PCA-{args.pca_dim} with whitening", flush=True)
-    reduced = PCA(n_components=args.pca_dim, whiten=True).fit_transform(embeddings)
+    # For cross-tokenizer controls we may instead consume the exact cached PCA
+    # view used by an existing OPQ run, avoiding a silent representation change.
+    if args.pretransformed_input:
+        if args.embedding_dim != args.pca_dim:
+            raise ValueError(
+                "--pretransformed-input requires embedding_dim == pca_dim"
+            )
+        print(
+            f"using pretransformed {args.pca_dim}-dimensional embeddings",
+            flush=True,
+        )
+        reduced = embeddings
+    else:
+        print(f"fitting PCA-{args.pca_dim} with whitening", flush=True)
+        reduced = PCA(n_components=args.pca_dim, whiten=True).fit_transform(embeddings)
     reduced = np.ascontiguousarray(reduced.astype(np.float32, copy=False))
 
     faiss.omp_set_num_threads(args.faiss_threads)
@@ -517,7 +539,8 @@ def main() -> None:
             "embedding_path": str(args.embedding_path.resolve()),
             "embedding_dim": args.embedding_dim,
             "pca_dim": args.pca_dim,
-            "pca_whiten": True,
+            "pca_whiten": not args.pretransformed_input,
+            "pretransformed_input": args.pretransformed_input,
             "quantizer": args.quantizer,
             "n_codebooks": args.n_codebooks,
             "codebook_size": args.codebook_size,

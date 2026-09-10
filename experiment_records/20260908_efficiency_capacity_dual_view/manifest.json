@@ -1,0 +1,148 @@
+{
+  "checkpoints": [
+    {
+      "bytes": 13993054,
+      "exists": true,
+      "path": "runs/latte_comparison_pure/science23_opq4/onepass_pairwise_ar/best.pt"
+    },
+    {
+      "bytes": 12936747,
+      "exists": true,
+      "path": "saved/AmazonReviews2023CleanGR_science23_opq4_pure_ar_l20_v1/pytorch_model.bin"
+    }
+  ],
+  "command": null,
+  "created_at": "2026-09-10T13:59:25.478752+00:00",
+  "datasets": [
+    "Music23",
+    "Science23",
+    "Video23"
+  ],
+  "files": [
+    {
+      "bytes": 1297,
+      "role": "summary",
+      "sha256": "66a0ea34492e085be75713d3b8a1e6ce717d344a6f9337a3170718e20d969edd",
+      "source": "_snapshot_record_inputs/efficiency_summary.md",
+      "stored_as": "summary.md"
+    },
+    {
+      "bytes": 5401,
+      "role": "metrics",
+      "sha256": "3ca9e16c83c166f2fa1a49c12cdb92303a1999b2087a2eb1d1299b8472ff1b06",
+      "source": "_snapshot_record_inputs/efficiency_metrics.json",
+      "stored_as": "metrics.json"
+    },
+    {
+      "bytes": 1328,
+      "role": "artifact",
+      "sha256": "5e45902f605070887de6bd397b408abe0483f945af805edaae43075d450597f3",
+      "source": "runs/overnight_20260908/PLAN.md",
+      "stored_as": "artifacts/plan.md"
+    },
+    {
+      "bytes": 123070,
+      "role": "artifact",
+      "sha256": "2159d44d1e85dfe5b12b739429d52d21cf3947193be96e4b9f69720610d6fc72",
+      "source": "runs/overnight_20260908/sampled_catalog/k256/result.json",
+      "stored_as": "artifacts/sampled_k256.json"
+    },
+    {
+      "bytes": 117652,
+      "role": "artifact",
+      "sha256": "0e46d7818cbc3dc83ebf937af7c35b781c6677c16871397a298479a263146577",
+      "source": "runs/overnight_20260908/sampled_catalog/k1024/result.json",
+      "stored_as": "artifacts/sampled_k1024.json"
+    },
+    {
+      "bytes": 109494,
+      "role": "artifact",
+      "sha256": "57f14d6f48adb42a9483e604b17286c8898f92f44732924203e74ab9ad532d7e",
+      "source": "runs/overnight_20260908/sampled_catalog/k4096/result.json",
+      "stored_as": "artifacts/sampled_k4096.json"
+    },
+    {
+      "bytes": 125965,
+      "role": "artifact",
+      "sha256": "0519da063dd367d7dd5d16a1ed2d32383b9c60ff012e3fe0888e7b57200efc13",
+      "source": "runs/overnight_20260908/capacity/compact_d128/onepass_pairwise_ar/result.json",
+      "stored_as": "artifacts/capacity_compact_d128.json"
+    },
+    {
+      "bytes": 109480,
+      "role": "artifact",
+      "sha256": "93a2d82c69ab46f254a63af5c2cf91a6c89f0e49098a9a531dab12365111229b",
+      "source": "runs/overnight_20260908/capacity/depth_d256/onepass_pairwise_ar/result.json",
+      "stored_as": "artifacts/capacity_depth_d256.json"
+    },
+    {
+      "bytes": 109658,
+      "role": "artifact",
+      "sha256": "fba0393e819785efae5a8a34d767e4355923175f4068ba06cbf310fe7ceda3cb",
+      "source": "runs/overnight_20260908/capacity/width_d176/onepass_pairwise_ar/result.json",
+      "stored_as": "artifacts/capacity_width_d176.json"
+    },
+    {
+      "bytes": 4074,
+      "role": "artifact",
+      "sha256": "9d0d2111776f94414509b9967921486f65327ff64620507b6aa5bd562bd319b5",
+      "source": "runs/overnight_20260908/dual_view/video23/opq4_to_rqk3/result.json",
+      "stored_as": "artifacts/video_opq4_to_rq3.json"
+    },
+    {
+      "bytes": 85038,
+      "role": "artifact",
+      "sha256": "c89844169b7ad36e15984f98240dcd98c3bf4b1f0d18227068f285972206c612",
+      "source": "runs/overnight_20260908/dual_view/video23/rqk3_matched_drafter/result.json",
+      "stored_as": "artifacts/video_rq3_matched.json"
+    },
+    {
+      "bytes": 4046,
+      "role": "artifact",
+      "sha256": "3da1c9bec4b4b66da892c56234cd429c723a20323c69bfe07e03b2b0e8507bfa",
+      "source": "runs/overnight_20260908/dual_view/video23/rqk3_to_opq4/result.json",
+      "stored_as": "artifacts/video_rq3_to_opq4.json"
+    },
+    {
+      "bytes": 4071,
+      "role": "artifact",
+      "sha256": "b225e03d8d9cc4ec80b1380a066303b2ef3feb6b80e42a624b75c5c149283271",
+      "source": "runs/overnight_20260908/dual_view/music23/opq4_to_rqk3/result.json",
+      "stored_as": "artifacts/music_opq4_to_rq3.json"
+    },
+    {
+      "bytes": 75086,
+      "role": "artifact",
+      "sha256": "dc5e82fbe90278d5ef5f6af33d5239bb847000c8c3175335300f72b92091188e",
+      "source": "runs/overnight_20260908/dual_view/music23/rqk3_matched_drafter/result.json",
+      "stored_as": "artifacts/music_rq3_matched.json"
+    },
+    {
+      "bytes": 4079,
+      "role": "artifact",
+      "sha256": "d758ac038f6f9678f0d7ac38b1f9eeb700d102cf1e2a268f306ec39e1a362480",
+      "source": "runs/overnight_20260908/dual_view/music23/rqk3_to_opq4/result.json",
+      "stored_as": "artifacts/music_rq3_to_opq4.json"
+    }
+  ],
+  "git_snapshot": {
+    "branch": "main",
+    "commit": "6051fad300bbd7a5bbb3764bfb7a2c0046a7a811",
+    "dirty": true
+  },
+  "protocol": "Full Amazon23 L20 test; seed 2026; K=72; validation-selected checkpoints and fusion alpha.",
+  "record_id": "20260908_efficiency_capacity_dual_view",
+  "recorded_by": {
+    "host": "csce-caver-s1.engr.tamu.edu",
+    "user": "lingfengs111"
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "tags": [
+    "capacity",
+    "collision-free",
+    "dual-view",
+    "efficiency"
+  ],
+  "title": "Amazon23 efficiency, capacity, and dual-view controls"
+}

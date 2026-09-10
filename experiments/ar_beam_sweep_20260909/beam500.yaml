@@ -1,0 +1,12 @@
+epochs: 0
+ar_beam_search:
+  top_k_final: 10
+  self_kv_cache: true
+  cross_kv_cache: true
+  seed: 42
+  val:
+    pre_cut_num: [256, 256, 256, 256]
+    beam_search_num: [256, 500, 500, 500]
+  test:
+    pre_cut_num: [256, 256, 256, 256]
+    beam_search_num: [256, 500, 500, 500]

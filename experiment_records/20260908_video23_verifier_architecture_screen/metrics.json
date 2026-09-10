@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "study_id": "20260908_video23_verifier_architecture_screen",
+  "rows": [
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "frozen AR path-score baseline",
+      "metrics": {"ndcg@5": 0.04218895075682823, "recall@5": 0.06556425571431586, "ndcg@10": 0.05481080699891571, "recall@10": 0.10486270868069479, "candidate_recall@72": 0.2652962157826977},
+      "notes": "L20; K=72; alpha=0.75; validation-only screening reference"
+    },
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "whole-SID scalar head, causal",
+      "metrics": {"ndcg@5": 0.03844485855085401, "recall@5": 0.059707477680926956, "ndcg@10": 0.049419565893799, "recall@10": 0.0938772925856356, "candidate_recall@72": 0.2652962157826977},
+      "notes": "formal v2; best epoch 8; alpha=0.25; replaces AR path likelihood; negative"
+    },
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "whole-SID scalar head, bidirectional",
+      "metrics": {"ndcg@5": 0.038542414437923826, "recall@5": 0.05988687448555328, "ndcg@10": 0.049297386970836715, "recall@10": 0.09329689115890336, "candidate_recall@72": 0.2652962157826977},
+      "notes": "formal v2; best epoch 6; alpha=0.25; replaces AR path likelihood; negative"
+    },
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "bounded residual over frozen AR, causal",
+      "metrics": {"ndcg@5": 0.04218895075682823, "recall@5": 0.06556425571431586, "ndcg@10": 0.05481080699891571, "recall@10": 0.10486270868069479, "candidate_recall@72": 0.2652962157826977},
+      "notes": "formal v3; epoch 0 selected; every learned epoch rejected"
+    },
+    {
+      "dataset": "Video23",
+      "split": "validation",
+      "method": "bounded residual over frozen AR, bidirectional",
+      "metrics": {"ndcg@5": 0.04218895075682823, "recall@5": 0.06556425571431586, "ndcg@10": 0.05481080699891571, "recall@10": 0.10486270868069479, "candidate_recall@72": 0.2652962157826977},
+      "notes": "formal v3; epoch 0 selected; every learned epoch rejected"
+    }
+  ]
+}

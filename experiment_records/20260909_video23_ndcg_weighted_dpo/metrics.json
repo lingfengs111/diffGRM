@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "study_id": "20260909_video23_ndcg_weighted_dpo",
+  "rows": [
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "candidate-selected frozen baseline",
+      "metrics": {"ndcg@5": 0.037371644798001626, "recall@5": 0.057037631117958676, "ndcg@10": 0.04789861256061673, "recall@10": 0.08979337709208332, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; K=72; frozen drafter and canonical AR; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "APAO-style adaptive prefix loss, all examples",
+      "metrics": {"ndcg@5": 0.03725796287312035, "recall@5": 0.05702707836474536, "ndcg@10": 0.04777669507362836, "recall@10": 0.08976171883244338, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; six-epoch pilot; seed 2026; best epoch 1; negative"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "APAO-style adaptive prefix loss, Top-72 support",
+      "metrics": {"ndcg@5": 0.03727375494298098, "recall@5": 0.057069289377598614, "ndcg@10": 0.047810141427953055, "recall@10": 0.08985669361136321, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; six-epoch pilot; seed 2026; best epoch 2; not promotable"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "current-AR hard-negative listwise, Top-72 support",
+      "metrics": {"ndcg@5": 0.037239699640301924, "recall@5": 0.057069289377598614, "ndcg@10": 0.04765424855280334, "recall@10": 0.08945568898925729, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; six-epoch pilot; seed 2026; best epoch 3; negative"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "NDCG-weighted DPO, six-epoch pilot",
+      "metrics": {"ndcg@5": 0.0375165227760588, "recall@5": 0.05758637428505097, "ndcg@10": 0.04821304019832794, "recall@10": 0.09086975791984128, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; seed 2026; best epoch 6; local LiPO-lambda-inspired adaptation; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "NDCG-weighted DPO, seed 2026",
+      "metrics": {"ndcg@5": 0.03759489192499154, "recall@5": 0.05768134906397079, "ndcg@10": 0.04827925710609062, "recall@10": 0.09091196893269454, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; 12-epoch follow-up; best epoch 11; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "NDCG-weighted DPO, seed 2027",
+      "metrics": {"ndcg@5": 0.037596010499914755, "recall@5": 0.05768134906397079, "ndcg@10": 0.048241421664599715, "recall@10": 0.09078533589413477, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; 12-epoch follow-up; best epoch 12; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "NDCG-weighted DPO, seed 2028",
+      "metrics": {"ndcg@5": 0.03756977076366264, "recall@5": 0.0576919018171841, "ndcg@10": 0.04822002010935857, "recall@10": 0.09082754690698804, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; 12-epoch follow-up; best epoch 12; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "NDCG-weighted DPO, seed 2029",
+      "metrics": {"ndcg@5": 0.03766008472441872, "recall@5": 0.0576919018171841, "ndcg@10": 0.04829142261587027, "recall@10": 0.09075367763449484, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; 12-epoch follow-up; best epoch 12; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test (4-seed mean)",
+      "method": "NDCG-weighted DPO, seeds 2026-2029",
+      "metrics": {"ndcg@5": 0.03760518947824691, "recall@5": 0.05768662544057744, "ndcg@10": 0.0482580303739798, "recall@10": 0.09081963234207804, "candidate_recall@72": 0.2329836854435322, "ndcg@5_sample_std": 0.00003854982335167094, "recall@5_sample_std": 0.000006092634908399169, "ndcg@10_sample_std": 0.00003309705635664184, "recall@10_sample_std": 0.00006859289588653978},
+      "notes": "mean +/- sample SD; every seed improves both Top-10 metrics over frozen baseline"
+    }
+  ]
+}

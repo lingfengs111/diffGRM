@@ -1,0 +1,189 @@
+{
+  "state": "complete",
+  "attention": "bidirectional",
+  "best_epoch": 0,
+  "validation": {
+    "n_examples": 94762,
+    "selected_alpha": 0.75,
+    "selected": {
+      "ndcg@5": 0.04218895075682823,
+      "recall@5": 0.06556425571431586,
+      "ndcg@10": 0.05481080699891571,
+      "recall@10": 0.10486270868069479
+    },
+    "by_alpha": {
+      "0.0": {
+        "ndcg@5": 0.037794638163126976,
+        "recall@5": 0.0587155188788755,
+        "ndcg@10": 0.04885662358344087,
+        "recall@10": 0.09310694160106371
+      },
+      "0.1": {
+        "ndcg@5": 0.038673056125471075,
+        "recall@5": 0.06006627129017961,
+        "ndcg@10": 0.04992213364994556,
+        "recall@10": 0.09505920094552668
+      },
+      "0.25": {
+        "ndcg@5": 0.04018800824253959,
+        "recall@5": 0.06244064076317511,
+        "ndcg@10": 0.051575870737299336,
+        "recall@10": 0.09790844431312129
+      },
+      "0.5": {
+        "ndcg@5": 0.041481347689361577,
+        "recall@5": 0.06468837719761086,
+        "ndcg@10": 0.05365193889567877,
+        "recall@10": 0.10255165572697916
+      },
+      "0.75": {
+        "ndcg@5": 0.04218895075682823,
+        "recall@5": 0.06556425571431586,
+        "ndcg@10": 0.05481080699891571,
+        "recall@10": 0.10486270868069479
+      },
+      "0.9": {
+        "ndcg@5": 0.04140648630944904,
+        "recall@5": 0.06468837719761086,
+        "ndcg@10": 0.053329407887165295,
+        "recall@10": 0.10184462126168717
+      },
+      "1.0": {
+        "ndcg@5": 0.03958409023216681,
+        "recall@5": 0.06208184715392246,
+        "ndcg@10": 0.05155413450785107,
+        "recall@10": 0.09935417150334522
+      }
+    },
+    "verifier_only": {
+      "ndcg@5": 0.03958409023216681,
+      "recall@5": 0.06208184715392246,
+      "ndcg@10": 0.05155413450785107,
+      "recall@10": 0.09935417150334522
+    },
+    "drafter_only": {
+      "ndcg@5": 0.037794638163126976,
+      "recall@5": 0.0587155188788755,
+      "ndcg@10": 0.04885662358344087,
+      "recall@10": 0.09310694160106371
+    },
+    "candidate_recall": 0.2652962157826977,
+    "rescue_count": 2688,
+    "harm_count": 1574,
+    "rescue_opportunities": 16317,
+    "original_top10_hits": 8823,
+    "evaluation_seconds": 23.875598028069362,
+    "residual_rms": 0.0,
+    "residual_abs_p95": 0.0,
+    "residual_at_cap_fraction": 0.0
+  },
+  "baseline": {
+    "n_examples": 94762,
+    "selected_alpha": 0.75,
+    "selected": {
+      "ndcg@5": 0.04218895075682823,
+      "recall@5": 0.06556425571431586,
+      "ndcg@10": 0.05481080699891571,
+      "recall@10": 0.10486270868069479
+    },
+    "by_alpha": {
+      "0.0": {
+        "ndcg@5": 0.037794638163126976,
+        "recall@5": 0.0587155188788755,
+        "ndcg@10": 0.04885662358344087,
+        "recall@10": 0.09310694160106371
+      },
+      "0.1": {
+        "ndcg@5": 0.038673056125471075,
+        "recall@5": 0.06006627129017961,
+        "ndcg@10": 0.04992213364994556,
+        "recall@10": 0.09505920094552668
+      },
+      "0.25": {
+        "ndcg@5": 0.04018800824253959,
+        "recall@5": 0.06244064076317511,
+        "ndcg@10": 0.051575870737299336,
+        "recall@10": 0.09790844431312129
+      },
+      "0.5": {
+        "ndcg@5": 0.041481347689361577,
+        "recall@5": 0.06468837719761086,
+        "ndcg@10": 0.05365193889567877,
+        "recall@10": 0.10255165572697916
+      },
+      "0.75": {
+        "ndcg@5": 0.04218895075682823,
+        "recall@5": 0.06556425571431586,
+        "ndcg@10": 0.05481080699891571,
+        "recall@10": 0.10486270868069479
+      },
+      "0.9": {
+        "ndcg@5": 0.04140648630944904,
+        "recall@5": 0.06468837719761086,
+        "ndcg@10": 0.053329407887165295,
+        "recall@10": 0.10184462126168717
+      },
+      "1.0": {
+        "ndcg@5": 0.03958409023216681,
+        "recall@5": 0.06208184715392246,
+        "ndcg@10": 0.05155413450785107,
+        "recall@10": 0.09935417150334522
+      }
+    },
+    "verifier_only": {
+      "ndcg@5": 0.03958409023216681,
+      "recall@5": 0.06208184715392246,
+      "ndcg@10": 0.05155413450785107,
+      "recall@10": 0.09935417150334522
+    },
+    "drafter_only": {
+      "ndcg@5": 0.037794638163126976,
+      "recall@5": 0.0587155188788755,
+      "ndcg@10": 0.04885662358344087,
+      "recall@10": 0.09310694160106371
+    },
+    "candidate_recall": 0.2652962157826977,
+    "rescue_count": 2688,
+    "harm_count": 1574,
+    "rescue_opportunities": 16317,
+    "original_top10_hits": 8823
+  },
+  "settings": {
+    "mode": "train",
+    "base_cache": "/home/lingfengs111/codes/GR_variant/DiffGRM/runs/verifier_arch_20260908/v2/full/video23/cache",
+    "score_cache": "/home/lingfengs111/codes/GR_variant/DiffGRM/runs/verifier_residual_20260908/v3/full/scores",
+    "output": "/home/lingfengs111/codes/GR_variant/DiffGRM/runs/verifier_residual_20260908/v3/full/bidirectional",
+    "attention": "bidirectional",
+    "epochs": 8,
+    "batch_size": 64,
+    "accumulate": 2,
+    "eval_batch_size": 64,
+    "chunk_size": 16,
+    "head_lr": 0.0001,
+    "weight_decay": 0.0001,
+    "residual_l2": 0.01,
+    "residual_cap": 2.0,
+    "limit": 0,
+    "seed": 2026,
+    "n_train": 530300,
+    "n_val": 94762,
+    "parameters": 3294209,
+    "head_parameters": 66049,
+    "frozen_ar_parameters": 3228160,
+    "initial_head_sha256": "d6f78df048f33d90a23f636f0b873993f4e8b62d21daf03e0fd39bb90042fb4d",
+    "base_ready_sha256": "1f67bef133dc26ffdb0fbfe58fd01dd371647e0519626776b15b668ed18345d5",
+    "score_ready_sha256": "84a5c85520225b083e51be942035c508a4bbaf272024a912513a36104a1f2ba7"
+  },
+  "score_cache": {
+    "created_utc": "2026-09-08T21:30:53.410279+00:00",
+    "base_cache": "/home/lingfengs111/codes/GR_variant/DiffGRM/runs/verifier_arch_20260908/v2/full/video23/cache",
+    "base_ready_sha256": "1f67bef133dc26ffdb0fbfe58fd01dd371647e0519626776b15b668ed18345d5",
+    "ar_checkpoint": "/home/lingfengs111/codes/GR_variant/DiffGRM/runs/verifier_arch_20260908/v2/inputs/video23/ar.pt",
+    "ar_sha256": "39bf52f451bc00e03526aa77a099272a266b2f937962fd6990d87dc1a2a3c380",
+    "count": 530300,
+    "limit": 0,
+    "k": 72,
+    "score_sha256": "415b28607d921c38a99af2682a7945957282bda3e6bb68cdde2bad690e90f2c8"
+  },
+  "completed_utc": "2026-09-08T21:54:21.014402+00:00"
+}

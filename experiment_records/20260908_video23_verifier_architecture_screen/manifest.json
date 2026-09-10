@@ -1,0 +1,104 @@
+{
+  "checkpoints": [
+    {
+      "bytes": 12936747,
+      "exists": true,
+      "path": "saved/AmazonReviews2023CleanGR_video23_opq4_pure_ar_l20_v1/pytorch_model.bin"
+    },
+    {
+      "bytes": 13993054,
+      "exists": true,
+      "path": "runs/latte_comparison_pure/video23_opq4/onepass_pairwise_ar/best.pt"
+    }
+  ],
+  "command": null,
+  "created_at": "2026-09-10T13:59:25.479051+00:00",
+  "datasets": [
+    "Video23"
+  ],
+  "files": [
+    {
+      "bytes": 1031,
+      "role": "summary",
+      "sha256": "449a0f7799a153c44387b7629cd0ae3e384f1fd1a7ec76673a92173a97b0a78a",
+      "source": "_snapshot_record_inputs/verifier_screen_summary.md",
+      "stored_as": "summary.md"
+    },
+    {
+      "bytes": 2104,
+      "role": "metrics",
+      "sha256": "697d23738a74c92badf505aadb3b43705769f8e5b2b3e951367310e52d023344",
+      "source": "_snapshot_record_inputs/verifier_screen_metrics.json",
+      "stored_as": "metrics.json"
+    },
+    {
+      "bytes": 6748,
+      "role": "artifact",
+      "sha256": "b38440b7ee7bbd8607fd7858696f6e1736dddaf7ec83cbfbd4b84c2f89993554",
+      "source": "experiments/verifier_arch_20260908/PROTOCOL.md",
+      "stored_as": "artifacts/whole_sid_protocol.md"
+    },
+    {
+      "bytes": 5496,
+      "role": "artifact",
+      "sha256": "45cfb5cc5a29269a17a4659d44d0d4025b604dd73fc3b152887a1ab18564b610",
+      "source": "runs/verifier_arch_20260908/v2/full/video23/causal/result.json",
+      "stored_as": "artifacts/whole_sid_causal.json"
+    },
+    {
+      "bytes": 5525,
+      "role": "artifact",
+      "sha256": "081f73c93e5aead56c87006352343c7e4ae79e2c379c6af087ced0bab0e732d7",
+      "source": "runs/verifier_arch_20260908/v2/full/video23/bidirectional/result.json",
+      "stored_as": "artifacts/whole_sid_bidirectional.json"
+    },
+    {
+      "bytes": 3720,
+      "role": "artifact",
+      "sha256": "002c3b7ec600389db1e0644a7549d32b51f439a09be09a3b223456cd218ec439",
+      "source": "experiments/verifier_residual_20260908/PROTOCOL.md",
+      "stored_as": "artifacts/residual_protocol.md"
+    },
+    {
+      "bytes": 6165,
+      "role": "artifact",
+      "sha256": "2f4691f249e7c72ebc7af9ed9ea95073699535dca3f3121ef5793ff32e9f3884",
+      "source": "runs/verifier_residual_20260908/v3/full/causal/result.json",
+      "stored_as": "artifacts/residual_causal.json"
+    },
+    {
+      "bytes": 6186,
+      "role": "artifact",
+      "sha256": "5043d8ef8aa86dcb5b164d4a7999f872401cc927f4bc44b288466e7aad4079ec",
+      "source": "runs/verifier_residual_20260908/v3/full/bidirectional/result.json",
+      "stored_as": "artifacts/residual_bidirectional.json"
+    },
+    {
+      "bytes": 7361,
+      "role": "artifact",
+      "sha256": "12eedb1d5ceae2f3c00bcdcb4c7918de61dbc29f7fa8b60d419db56aaafe187f",
+      "source": "runs/verifier_residual_20260908/v3/decision.json",
+      "stored_as": "artifacts/residual_decision.json"
+    }
+  ],
+  "git_snapshot": {
+    "branch": "main",
+    "commit": "6051fad300bbd7a5bbb3764bfb7a2c0046a7a811",
+    "dirty": true
+  },
+  "protocol": "L20 validation-only; immutable K=72 proposal cache; formal whole-SID v2 and residual v3.",
+  "record_id": "20260908_video23_verifier_architecture_screen",
+  "recorded_by": {
+    "host": "csce-caver-s1.engr.tamu.edu",
+    "user": "lingfengs111"
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "tags": [
+    "architecture",
+    "negative-result",
+    "validation-only",
+    "verifier"
+  ],
+  "title": "Video23 whole-SID and residual verifier screen"
+}

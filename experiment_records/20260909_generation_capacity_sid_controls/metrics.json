@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "study_id": "20260909_generation_capacity_sid_controls",
+  "rows": [
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "candidate-selected OPQ4 drafter + frozen AR baseline",
+      "metrics": {"ndcg@5": 0.037371644798001626, "recall@5": 0.057037631117958676, "ndcg@10": 0.04789861256061673, "recall@10": 0.08979337709208332, "candidate_recall@72": 0.2329836854435322},
+      "notes": "L20; K=72; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "proposal-aware AR, full decoder",
+      "metrics": {"ndcg@5": 0.03725932877002009, "recall@5": 0.05698486735189211, "ndcg@10": 0.047703613702116836, "recall@10": 0.08944513623604398, "candidate_recall@72": 0.2329836854435322, "milliseconds_per_example": 1.637689212955574},
+      "notes": "L20; rank-stratified proposal negatives; seed 2026; alpha=0.75; negative"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "proposal-aware AR, last decoder block",
+      "metrics": {"ndcg@5": 0.037183187468440224, "recall@5": 0.05698486735189211, "ndcg@10": 0.047763809939439794, "recall@10": 0.08990945737742977, "candidate_recall@72": 0.2329836854435322, "milliseconds_per_example": 1.6536169909978826},
+      "notes": "L20; rank-stratified proposal negatives; seed 2026; alpha=0.75; no NDCG gain"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "fixed K72 union: drafter-56 + AR beam-16",
+      "metrics": {"ndcg@5": 0.03718034949368541, "recall@5": 0.05702707836474536, "ndcg@10": 0.047717625526497685, "recall@10": 0.08985669361136321, "candidate_recall@72": 0.23793292670057617, "milliseconds_per_example": 2.2982832694009705},
+      "notes": "L20; union candidate recall; seed 2026; alpha=0.75; more coverage but no final gain"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "standalone AR beam 128",
+      "metrics": {"ndcg@5": 0.03371389567712384, "recall@5": 0.05189844030307507, "ndcg@10": 0.04361624848486359, "recall@10": 0.08271247968595007},
+      "notes": "L20; actual search width 128; 8m16s wall time"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "standalone AR beam 256",
+      "metrics": {"ndcg@5": 0.03371389567712384, "recall@5": 0.05189844030307507, "ndcg@10": 0.04361624848486359, "recall@10": 0.08271247968595007},
+      "notes": "L20; actual search width 256; unchanged Top-10; 14m39s wall time"
+    },
+    {
+      "dataset": "Video23",
+      "split": "test",
+      "method": "standalone AR beam 500",
+      "metrics": {"ndcg@5": 0.03371389567712384, "recall@5": 0.05189844030307507, "ndcg@10": 0.04361624848486359, "recall@10": 0.08271247968595007},
+      "notes": "L20; digit-0 width capped at 256; unchanged Top-10; 22m00s wall time"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "canonical d256 drafter + d256 2+2 AR",
+      "metrics": {"ndcg@5": 0.019137746795925708, "recall@5": 0.02938119054623909, "ndcg@10": 0.024302518596319028, "recall@10": 0.04538589781308228, "candidate_recall@72": 0.12221241541629892, "parameters": 6719000, "milliseconds_per_example": 1.4164000640764747},
+      "notes": "L20; reference capacity; seed 2026; alpha=0.75"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "small d176 drafter + deeper d256 2+4 AR",
+      "metrics": {"ndcg@5": 0.018768377507260188, "recall@5": 0.02912621359223301, "ndcg@10": 0.02417999218407362, "recall@10": 0.04597430616848092, "candidate_recall@72": 0.12517407080513876, "parameters": 6539000, "milliseconds_per_example": 1.316955580445593},
+      "notes": "L20; seed 2026; alpha=0.75; recall up, NDCG slightly down"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "small d176 drafter + wider d320 2+2 AR",
+      "metrics": {"ndcg@5": 0.01801921289914307, "recall@5": 0.027969010493282338, "ndcg@10": 0.023670436298542073, "recall@10": 0.045601647543395116, "candidate_recall@72": 0.12517407080513876, "parameters": 6689000, "milliseconds_per_example": 1.030087756889716},
+      "notes": "L20; seed 2026; alpha=0.75; width less effective than depth"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "standalone AR, semantic OPQ4",
+      "metrics": {"ndcg@10": 0.020772, "recall@10": 0.039051, "full_sid_top1": 0.007453},
+      "notes": "L20; semantic routing reference; values preserved from AR evaluation summary"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "standalone AR, randomly reassigned OPQ4 paths",
+      "metrics": {"ndcg@10": 0.015389, "recall@10": 0.029165, "full_sid_top1": 0.005727},
+      "notes": "L20; exact path multiset preserved; item-to-path assignment permuted; best epoch 114"
+    },
+    {
+      "dataset": "Science23",
+      "split": "test",
+      "method": "random-SID one-pass pairwise drafter + random-SID AR",
+      "metrics": {"ndcg@5": 0.012156176047429414, "recall@5": 0.01890752182014318, "ndcg@10": 0.015831464497472792, "recall@10": 0.030322643914876924, "candidate_recall@72": 0.09192899872511523, "milliseconds_per_example": 1.2534471315119773},
+      "notes": "L20; completed after the initial summary; seed 2026; alpha=0.75; clear semantic-SID benefit"
+    }
+  ]
+}
