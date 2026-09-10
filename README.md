@@ -136,6 +136,9 @@ Replace `video23.yaml` with `music23.yaml` or `science23.yaml` as needed.
 Several historical launchers contain absolute repository, Python, checkpoint,
 or dataset paths. Review these variables before running them on another
 machine. Training artifacts go under ignored `runs/` and `saved/` directories.
+New launchers should put raw outputs below
+`runs/<machine-id>/<study-id>/...`; the compact Git record goes to the matching
+`experiment_records/incoming/<machine-id>/` directory.
 
 ## Recording a new result
 

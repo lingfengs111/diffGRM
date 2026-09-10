@@ -32,6 +32,11 @@ directory. A machine may copy `incoming/STATUS_TEMPLATE.md` to
 `incoming/<machine-id>/STATUS.md` for its mutable queue/status overview. It
 must not edit another machine's directory.
 
+New ignored runtime trees should mirror the owner as
+`runs/<machine-id>/<study-id>/...`. The Git-synchronized record is the compact
+counterpart under `incoming/<machine-id>/`; legacy `runs/` directories may
+remain where they are.
+
 `metrics.json` schema version 1 is:
 
 ```json

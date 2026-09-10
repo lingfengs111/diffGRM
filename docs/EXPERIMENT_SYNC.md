@@ -45,6 +45,20 @@ incoming directory. A machine can maintain its own `STATUS.md` there for its
 running queue and local checkpoint availability. Never edit another machine's
 incoming directory.
 
+Use the same ownership convention for ignored raw outputs whenever a launcher
+is created or updated:
+
+```text
+runs/<machine-id>/<study-id>/<arm-or-seed>/     # raw results/logs/checkpoints
+experiment_records/incoming/<machine-id>/<record-id>/  # Git evidence package
+```
+
+`runs/` remains local and ignored; this convention makes manual checkpoint
+transfer and cleanup predictable. Existing historical `runs/` paths do not
+need to be moved. Reusable source/configuration still belongs in one uniquely
+named shared directory such as `experiments/20260910_verifier_followup/`, not
+inside a machine's evidence directory.
+
 Terminal records (`complete`, `failed`, or `invalid`) are promoted into the
 shared archive only after their producer branch is reviewed/merged. Planned or
 running records stay machine-owned. Routine producer commits do not edit
